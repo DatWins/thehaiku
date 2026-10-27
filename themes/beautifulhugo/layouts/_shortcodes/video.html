@@ -1,0 +1,49 @@
+{{- /*
+  Renders a self-hosted video in a <figure> with an optional caption.
+  The video file is not processed by Hugo; the poster image is resized
+  when it is a page or assets/ resource.
+*/ -}}
+{{- $src := .Get "src" | default (.Get 0) -}}
+{{- if not $src -}}
+  {{- errorf "video shortcode: src is required, e.g. {{< video src=\"clip.mp4\" >}} (%s)" .Position -}}
+{{- end -}}
+{{- $types := dict "mp4" "video/mp4" "m4v" "video/mp4" "webm" "video/webm" "ogv" "video/ogg" "ogg" "video/ogg" "mov" "video/quicktime" -}}
+{{- $ext := path.Ext $src | strings.TrimPrefix "." | lower -}}
+{{- $type := .Get "type" | default (index $types $ext) -}}
+{{- $url := partial "func/media-url.html" (dict "Page" .Page "Src" $src) -}}
+{{- $poster := "" -}}
+{{- with .Get "poster" -}}
+  {{- with partial "func/image-resource.html" (dict "Page" $.Page "Src" .) -}}
+    {{- $poster = (cond (gt .Width 1280) (.Resize "1280x") .).RelPermalink -}}
+  {{- else -}}
+    {{- $poster = partial "func/media-url.html" (dict "Page" $.Page "Src" .) -}}
+  {{- end -}}
+{{- end -}}
+{{- $on := slice "true" "1" "yes" -}}
+{{- $autoplay := in $on (printf "%v" (.Get "autoplay")) -}}
+{{- $controls := not (in (slice "false" "0" "no") (printf "%v" (.Get "controls"))) -}}
+{{- $muted := or $autoplay (in $on (printf "%v" (.Get "muted"))) -}}
+<figure class="video-figure no-photoswipe{{ with .Get "class" }} {{ . }}{{ end }}"{{ with .Get "width" }} style="max-width: {{ . | safeCSS }};"{{ end }}>
+  <video
+    {{- if $controls }} controls{{ end }}
+    {{- if $autoplay }} autoplay{{ end }}
+    {{- if $muted }} muted{{ end }}
+    {{- if in $on (printf "%v" (.Get "loop")) }} loop{{ end }}
+    {{- if not (in (slice "false" "0" "no") (printf "%v" (.Get "playsinline"))) }} playsinline{{ end }}
+    {{- with $poster }} poster="{{ . }}"{{ end }}
+    {{- with .Get "preload" }} preload="{{ . }}"{{ end }}
+    {{- with .Get "alt" }} aria-label="{{ . }}"{{ end }}>
+    <source src="{{ $url }}"{{ with $type }} type="{{ . }}"{{ end }}>
+    {{- with .Get "track" }}
+    <track kind="captions" src="{{ partial "func/media-url.html" (dict "Page" $.Page "Src" .) }}"{{ with $.Get "trackLang" }} srclang="{{ . }}"{{ end }} default>
+    {{- end }}
+    <a href="{{ $url }}">{{ i18n "videoUnsupported" | default "Your browser cannot play this video. Download it instead." }}</a>
+  </video>
+  {{- if or (.Get "title") (.Get "caption") (.Get "attr") }}
+  <figcaption>
+    {{- with .Get "title" }}<h4>{{ . }}</h4>{{ end }}
+    {{- with .Get "caption" }}<p>{{ . | markdownify }}</p>{{ end }}
+    {{- with .Get "attr" }}<p class="attr">{{ with $.Get "attrlink" }}<a href="{{ . }}">{{ $.Get "attr" }}</a>{{ else }}{{ . }}{{ end }}</p>{{ end }}
+  </figcaption>
+  {{- end }}
+</figure>

@@ -1,0 +1,51 @@
+{{- /*
+  Highwire Press `citation_*` meta tags, read by Google Scholar. One page must
+  describe exactly one publication for Scholar to index it.
+*/ -}}
+{{- $p := .Params.publication -}}
+{{- $kind := $p.kind | default "article" -}}
+<meta name="citation_title" content="{{ .Title }}">
+{{- range partial "func/publication-authors.html" . }}
+<meta name="citation_author" content="{{ . }}">
+{{- end }}
+<meta name="citation_publication_date" content="{{ .Date.Format "2006/01/02" }}">
+{{- with $p.venue }}
+  {{- if in (slice "inproceedings" "conference") $kind }}
+<meta name="citation_conference_title" content="{{ . | plainify }}">
+  {{- else if in (slice "phdthesis" "mastersthesis" "thesis") $kind }}
+<meta name="citation_dissertation_institution" content="{{ . | plainify }}">
+  {{- else if eq $kind "techreport" }}
+<meta name="citation_technical_report_institution" content="{{ . | plainify }}">
+  {{- else }}
+<meta name="citation_journal_title" content="{{ . | plainify }}">
+  {{- end }}
+{{- end }}
+{{- with $p.publisher }}
+<meta name="citation_publisher" content="{{ . }}">
+{{- end }}
+{{- with $p.volume }}
+<meta name="citation_volume" content="{{ . }}">
+{{- end }}
+{{- with $p.number }}
+<meta name="citation_issue" content="{{ . }}">
+{{- end }}
+{{- with $p.pages }}
+  {{- $range := split (replaceRE `\s*[-–—]+\s*` "-" (print .)) "-" }}
+<meta name="citation_firstpage" content="{{ index $range 0 }}">
+  {{- if gt (len $range) 1 }}
+<meta name="citation_lastpage" content="{{ index $range 1 }}">
+  {{- end }}
+{{- end }}
+{{- with $p.doi }}
+<meta name="citation_doi" content="{{ print . }}">
+{{- end }}
+{{- with $p.arxiv }}
+<meta name="citation_arxiv_id" content="{{ print . }}">
+{{- end }}
+{{- with $p.pdf }}
+<meta name="citation_pdf_url" content="{{ partial "func/publication-url.html" (dict "Page" $ "Src" .) | absURL }}">
+{{- end }}
+<meta name="citation_abstract_html_url" content="{{ .Permalink }}">
+{{- with .Lang }}
+<meta name="citation_language" content="{{ . }}">
+{{- end }}

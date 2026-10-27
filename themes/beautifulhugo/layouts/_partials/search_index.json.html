@@ -1,0 +1,45 @@
+{{- /*
+  Builds the JSON search index read by `assets/js/search-fuse.js`.
+
+  `Params.searchSections` limits the index to the listed content types; the
+  entry `mainSections` expands to the site's main sections. Unset indexes
+  every regular page. `Params.searchContentWords` truncates the indexed body
+  to that many words; 0 (the default) keeps it whole.
+*/ -}}
+{{- $types := slice -}}
+{{- $configured := site.Params.searchSections -}}
+{{- if and $configured (not (reflect.IsSlice $configured)) -}}
+    {{- $configured = slice $configured -}}
+{{- end -}}
+{{- range $configured -}}
+    {{- if eq . `mainSections` -}}
+        {{- $types = $types | append (partial "func/main-sections.html" $) -}}
+    {{- else -}}
+        {{- $types = $types | append . -}}
+    {{- end -}}
+{{- end -}}
+{{- $words := int (default 0 site.Params.searchContentWords) -}}
+{{- $index := slice -}}
+{{- range site.RegularPages -}}
+    {{- $excluded := in (slice `archive` `archives` `search`) .Layout -}}
+    {{- if and (not .Params.searchHidden) (not $excluded) (or (not $types) (in $types .Type)) -}}
+        {{- $content := trim (replaceRE `\s+` " " .Plain) " " -}}
+        {{- if and (gt $words 0) (gt (len (split $content " ")) $words) -}}
+            {{- $content = delimit (first $words (split $content " ")) " " -}}
+        {{- end -}}
+        {{- $headings := slice -}}
+        {{- range .Fragments.HeadingsMap -}}
+            {{- with .Title -}}
+                {{- $headings = $headings | append (. | plainify) -}}
+            {{- end -}}
+        {{- end -}}
+        {{- $entry := dict
+            "title" .Title
+            "url" .Permalink
+            "excerpt" (trim (replaceRE `\s+` " " (.Summary | plainify)) " ")
+            "headings" (delimit $headings " ")
+            "content" $content -}}
+        {{- $index = $index | append $entry -}}
+    {{- end -}}
+{{- end -}}
+{{- $index | jsonify -}}

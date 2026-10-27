@@ -1,0 +1,16 @@
+{{- /*
+  Returns the author names of a publication page as a slice of plain strings:
+  `publication.authors` from front matter, or the page authors from
+  `author_list.html` when it is not set.
+*/ -}}
+{{- $authors := slice -}}
+{{- with .Params.publication.authors -}}
+  {{- range . -}}
+    {{- $authors = $authors | append (. | markdownify | plainify | htmlUnescape) -}}
+  {{- end -}}
+{{- else -}}
+  {{- range partial "author_list.html" . -}}
+    {{- $authors = $authors | append .name -}}
+  {{- end -}}
+{{- end -}}
+{{- return $authors -}}

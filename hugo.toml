@@ -1,0 +1,67 @@
+baseURL = "/"
+locale = "en-US"
+defaultContentLanguage = "en"
+title = "the haiku"
+theme = "beautifulhugo"
+
+[pagination]
+  pagerSize = 10
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = false
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "date"
+    weight = 10
+
+[Params]
+  homeTitle = "the haiku"
+  subtitle = ""
+  mainSections = ["post", "posts"]
+  logo = "/img/logo.jpg"
+  dateFormat = "January 2, 2006"
+  wordCount = false
+  readingTime = false
+  rss = false
+  showRelatedPosts = false
+  socialShare = false
+  hideAuthor = true
+  colorScheme = "light"
+
+  [Params.search]
+    provider = "fuse"
+
+[[menu.main]]
+  name = "Home"
+  url = "/"
+  weight = 1
+
+[[menu.main]]
+  name = "About"
+  url = "/page/about/"
+  weight = 2
+
+[[menu.main]]
+  name = "Tags"
+  url = "/tags/"
+  weight = 3
+
+[[menu.main]]
+  name = "Seasons"
+  url = "/categories/"
+  weight = 4
+
+[markup.highlight]
+  noClasses = false
+  lineNos = false
+
+[markup.goldmark.renderer]
+  unsafe = true

@@ -1,0 +1,13 @@
+# Theme configuration. Hugo merges only some sections of a theme configuration
+# into the site configuration (params deeply, with site values winning).
+# Sections such as [markup] are not merged, so they stay in the site
+# configuration. See exampleSite/hugo.toml.
+
+[module]
+  [module.hugoVersion]
+    min = "0.146.2"
+    extended = false # No SCSS or WebP encoding; the standard edition is sufficient
+
+[params]
+  colorScheme = "auto"
+  mathEngine = "katex"

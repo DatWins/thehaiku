@@ -1,0 +1,17 @@
+{{- /* Links and BibTeX for a `type: publication` page. The authors and venue
+       are rendered in the page header by publication/meta.html. */ -}}
+{{- $p := .Params.publication -}}
+{{- if not $p }}{{ return }}{{ end -}}
+<div class="publication-actions">
+  {{- with partial "func/publication-links.html" . }}
+  <p class="publication-links">
+    {{- range . }}
+    <a class="btn btn-sm btn-outline-secondary" href="{{ .url }}"><i class="{{ .icon }}"></i>&nbsp;{{ .label }}</a>
+    {{- end }}
+  </p>
+  {{- end }}
+  <details class="details-shortcode publication-bibtex">
+    <summary>{{ i18n "publicationCite" }}</summary>
+    <pre><code class="language-bibtex">{{ partial "publication/bibtex.html" . }}</code></pre>
+  </details>
+</div>

@@ -1,0 +1,47 @@
+{{- /*
+  Year-grouped list of publication pages.
+
+  Takes: a page collection, or a dict with "Pages" and an optional
+  "Links" boolean (default true) that toggles the DOI/PDF links.
+*/ -}}
+{{- $pages := . -}}
+{{- $showLinks := true -}}
+{{- if reflect.IsMap . -}}
+  {{- $pages = .Pages -}}
+  {{- if isset . "Links" }}{{ $showLinks = .Links }}{{ end -}}
+{{- end -}}
+{{- $pages = where $pages "Params.hidden" "!=" true -}}
+<div class="publication-list">
+  {{- range $pages.GroupByDate "2006" }}
+  <h2 class="publication-year">{{ .Key }}</h2>
+  <ul class="publication-entries">
+    {{- range .Pages }}
+    {{- $p := .Params.publication }}
+    {{- $siteAuthor := .Site.Params.author.name | default "" }}
+    <li class="publication-entry">
+      <a class="publication-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
+      {{- with partial "func/publication-authors.html" . }}
+      <span class="publication-authors">
+        {{- range $i, $name := . -}}
+          {{- if $i }}, {{ end -}}
+          {{- if eq $name $siteAuthor }}<strong>{{ $name }}</strong>{{ else }}{{ $name }}{{ end -}}
+        {{- end -}}
+      </span>
+      {{- end }}
+      {{- with $p.venue }}
+      <span class="publication-venue"><em>{{ . | markdownify }}</em>{{ with $p.volume }} {{ . }}{{ end }}{{ with $p.number }}({{ . }}){{ end }}{{ with $p.pages }}, {{ . }}{{ end }}</span>
+      {{- end }}
+      {{- if $showLinks }}
+      {{- with partial "func/publication-links.html" . }}
+      <span class="publication-links">
+        {{- range . }}
+        <a href="{{ .url }}"><i class="{{ .icon }}"></i>&nbsp;{{ .label }}</a>
+        {{- end }}
+      </span>
+      {{- end }}
+      {{- end }}
+    </li>
+    {{- end }}
+  </ul>
+  {{- end }}
+</div>

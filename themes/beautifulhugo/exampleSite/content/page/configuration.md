@@ -1,0 +1,661 @@
+---
+title: Configuration
+subtitle: Every setting Beautiful Hugo supports
+comments: false
+---
+
+This page is a complete reference for every configuration option in Beautiful Hugo. All settings go in your site's `hugo.toml` (or `config.toml`/`config.yaml`).
+
+## Requirements
+
+The theme ships its own `hugo.toml` with a version constraint:
+
+```toml
+[module]
+  [module.hugoVersion]
+    min = "0.146.2"
+    extended = false
+```
+
+Use Hugo 0.146.2 or later. The **standard** edition is sufficient; the theme has no SCSS and does not encode WebP images. If your Hugo version is too old, Hugo writes a warning and the theme stops the build with an error message.
+
+The same file supplies the theme defaults `colorScheme = "auto"` and `mathEngine = "katex"`. Your site configuration overrides them.
+
+Hugo does not merge all sections of a theme configuration into your site configuration. Markup settings (`[markup.highlight]`, `[markup.goldmark]`) and `[frontmatter]` must be in your own site configuration — see [Syntax Highlighting](#syntax-highlighting), [Markdown Extensions](../markdown-extensions/), and [Last Modified Dates](#last-modified-dates).
+
+Hugo lowercases all configuration keys, so `[Params.author]` and `[params.author]` are the same key. This page uses both spellings for historical reasons; new snippets use the lowercase form.
+
+## Core Settings
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `homeTitle` | string | site title | Brand name shown in the navbar, home page header, and footer link. Falls back to the site title when unset |
+| `subtitle` | string | `""` | Site subtitle shown under the home page title |
+| `mainSections` | list | `["post", "posts"]` | Content sections treated as "posts" on the home page and archive page |
+| `logo` | string | — | Path to a square avatar/logo image. When the file is found via Hugo's asset pipeline (`resources.Get`), it is automatically resized (300×300, quality 100) and keeps its source format. If the file is not found as a resource, the raw path is used as-is. |
+| `favicon` | string | — | Path to favicon |
+| `share_img` | string | `logo` | Default social sharing image for pages that set no `share_img` or `image` of their own. A wide image suits Twitter cards better than the square `logo` |
+| `dateFormat` | string | i18n default | Date format string. Accepts Hugo locale tokens (e.g. `":date_long"`, `":date_medium"`, `":date_short"`) for automatic localization, or a Go time layout string based on the reference time `Mon Jan 2 15:04:05 MST 2006` (e.g. `"January 2, 2006"` or `"2006-01-02"`). **Do not use an example date** like `"2023-10-15"` — the year must be `2006`, month `01`, and day `02`. Locale tokens are recommended for multilingual sites. The theme validates `dateFormat` at build time and will emit a build error if it detects an invalid format (e.g. a date that doesn't use Go's reference time). |
+| `since` | int | — | Start year for copyright range (e.g. `2015 - 2026`) |
+
+```toml
+[Params]
+  subtitle = "Build a beautiful and simple website in minutes"
+  mainSections = ["post", "posts"]
+  logo = "/img/avatar-icon.png"
+  favicon = "/img/favicon.ico"
+  dateFormat = ":date_long"
+  since = 2015
+```
+
+## Last Modified Dates
+
+The post meta and the page meta show a "last modified" date when it differs from the publication date, and the JSON-LD structured data uses it for `dateModified`. Both read `.Lastmod`.
+
+With `enableGitInfo = true`, Hugo can take that date from the last commit that touched the file. The `[frontmatter]` block sets the order of the sources:
+
+```toml
+enableGitInfo = true
+
+[frontmatter]
+  lastmod = [":git", "lastmod", "date"]
+```
+
+Hugo uses the first source that has a value: the git commit date, then a `lastmod` field in the front matter, then the page date. This is also Hugo's default order, but the explicit list records the intent and removes the extra `modified`, `publishdate`, and `pubdate` fallbacks.
+
+Hugo does not merge `[frontmatter]` from a theme configuration, so the block must go in your own site configuration.
+
+Two build conditions apply:
+
+- Git dates need the file history. A shallow checkout — the default depth of 1 in `actions/checkout` — gives every page the date of that one commit. Set `fetch-depth: 0`.
+- Uncommitted changes make no commit, so the date of a modified file does not move until you commit it.
+
+`enableGitInfo` also supplies `.GitInfo.Hash` for the `commit` link and for the `showSource` link.
+
+## Math Engine
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `mathEngine` | string | `"katex"` | `"katex"`, `"mathjax"`, or `"none"` |
+| `mathRender` | string | `"client"` | `"server"` renders KaTeX at build time (see below) |
+
+- **`"katex"`** — Loads [KaTeX](https://katex.org/) (CSS + JS) for math rendering. This is the current behavior and the default for backward compatibility.
+- **`"mathjax"`** — Loads [MathJax 3](https://www.mathjax.org/) from CDN instead of KaTeX. MathJax is always loaded from CDN regardless of `selfHosted` since it is much larger than KaTeX.
+- **`"none"`** — Disables math rendering entirely; no math assets are loaded.
+
+```toml
+[Params]
+  mathEngine = "mathjax"
+```
+
+### Server-side rendering
+
+With `mathRender = "server"` and the KaTeX engine, Hugo renders the math at build time with `transform.ToMath`. The page then needs only the KaTeX CSS. The KaTeX scripts, about 300 KB, are not loaded, and the math shows without a flash of raw LaTeX. This needs the passthrough extension below. The option has no effect with MathJax.
+
+Bad LaTeX is rendered in red by KaTeX, as in the browser, and does not stop the build. Math that a shortcode or a partial adds as raw HTML is not rendered at build time. Set `math: true` in the front matter of that page to load the KaTeX scripts for it.
+
+```toml
+[params]
+  mathRender = "server"
+```
+
+### Passthrough
+
+Markdown removes backslashes and other characters from LaTeX. To keep the math unchanged, enable the Goldmark passthrough extension. Hugo does not merge the `[markup]` section of a theme configuration, so this belongs in your **site** configuration, not in the theme:
+
+```toml
+[markup.goldmark.extensions.passthrough]
+  enable = true
+  [markup.goldmark.extensions.passthrough.delimiters]
+    block = [['\[', '\]'], ['$$', '$$']]
+    inline = [['\(', '\)']]
+```
+
+These are the KaTeX auto-render delimiters. Single `$` is not an inline delimiter, because prose often contains a stray `$`; add `['$', '$']` to `inline` if you want it.
+
+With passthrough enabled, the theme loads the math files only on pages that contain math. Without it, the theme loads them on every page, as before. See [Math & Diagrams](../math-and-diagrams/).
+
+## Author
+
+`[Params.author]` is **required**. The old top-level `[author]` key is deprecated and will produce a build error.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `name` | string | Author display name (used in meta, copyright, post meta) |
+| `website` | string | Author website URL (linked from copyright) |
+| `email` | string | Email (mailto: link in footer) |
+
+You can also add any social platform key here — see [Comments & Social](../comments-and-social/) for the full list of 42 platforms.
+
+```toml
+[Params.author]
+  name = "Some Person"
+  website = "yourwebsite.com"
+  email = "youremail@domain.com"
+  github = "username"
+  twitter = "username"
+```
+
+If a social value starts with `http://` or `https://`, it is used as-is. Otherwise it is interpolated into the platform's default URL pattern.
+
+## Color Scheme
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `colorScheme` | string | `"auto"` | `"auto"`, `"dark"`, or `"light"` |
+
+### How it works
+
+The theme uses the `data-theme` attribute on `<html>` to control dark mode:
+
+- **`"auto"`** — Follows the system preference (`prefers-color-scheme`). A toggle button appears in the navbar so users can override it. The toggle cycles through **auto → light → dark → auto**.
+- **`"dark"`** — Always dark. No toggle button is shown.
+- **`"light"`** — Always light. No toggle button is shown; dark CSS is not loaded at all.
+
+When `colorScheme = "auto"`, the theme reacts to OS-level dark mode changes in real time via a `matchMedia` listener. If a user changes their system appearance while the site is open, the page updates immediately (unless they have explicitly chosen light or dark via the toggle).
+
+The user's toggle preference persists across pages via `localStorage` (key: `theme`). An inline script in `<head>` restores it before the first paint to prevent a flash of the wrong theme.
+
+For customizing dark mode colors, theme-dependent content, and other appearance overrides, see [Theming](../theming/).
+
+### selfHosted assets
+
+When `selfHosted = true`, no third-party asset is loaded from a CDN. Files that are plain JavaScript or CSS are fetched **once at build time** with Hugo's `resources.GetRemote`, checked against the same SRI hash the CDN tag uses, fingerprinted, and published under `vendor/`. Files that ship their own web fonts are served from the theme's `static/` directory.
+
+| Asset | CDN Source | Self-hosted from |
+|-------|-----------|------------------|
+| Bootstrap 5.3.8 CSS and JS | `cdn.jsdelivr.net` | fetched at build time |
+| KaTeX JS | `cdn.jsdelivr.net` | fetched at build time |
+| Highlight.js JS and themes | `cdn.jsdelivr.net` | fetched at build time |
+| PhotoSwipe 5.4.4 | `cdn.jsdelivr.net` | fetched at build time |
+| Fuse.js | `cdn.jsdelivr.net` | fetched at build time |
+| KaTeX CSS and fonts | `cdn.jsdelivr.net` | `static/css/katex.min.css` + `css/fonts/` |
+| Font Awesome 7 | `use.fontawesome.com` | `static/fontawesome/` |
+| Google Fonts (Lora, Open Sans) | `fonts.googleapis.com` | `static/css/fonts.css` + `static/fonts/` |
+
+The URLs and hashes live in `data/beautifulhugo/vendor.toml`. A site can override an entry by adding the same key to its own `data/beautifulhugo/vendor.toml`. A file that does not match its hash stops the build.
+
+```toml
+[Params]
+  colorScheme = "auto"
+  selfHosted = false
+```
+
+The first build needs network access. Hugo keeps the downloaded files in its `getresource` file cache (`:cacheDir/:project`, never expired by default), so later builds work offline. On CI, set `HUGO_CACHEDIR` and cache that directory between runs. Hugo's `[HTTPCache]` section controls whether the cached files are revalidated against the `Cache-Control` headers of the CDN; the pinned URLs above are immutable, so the default (no revalidation) is right. See [Configure HTTP cache](https://gohugo.io/configuration/http-cache/) and [Configure file caches](https://gohugo.io/configuration/caches/).
+
+## Content Display
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `readingTime` | bool | `false` | Show reading time in post meta |
+| `wordCount` | bool | `false` | Show word count in post meta |
+| `hideAuthor` | bool | `false` | Hide author from post meta |
+| `socialShare` | bool | `false` | Enable social sharing buttons on posts |
+| `showRelatedPosts` | bool | `false` | Show related posts, ranked by relevance via Hugo's [related-content engine](#related-posts) |
+| `related_content_limit` | int | `5` | Max number of related posts to display |
+| `rss` | bool | `false` | Show RSS icon in footer |
+| `disableFigureOverride` | bool | `false` | When `true`, use Hugo's native `<figure>` shortcode; `beautifulfigure` remains available |
+| `navShort` | bool | `false` | Make navbar permanently short (collapsed style) |
+| `mobileMenuPosition` | string | `"right"` | Side of the navbar that holds the hamburger menu button on narrow screens: `"left"` or `"right"` |
+| `showPageDates` | bool | `false` | Show dates on "page" type pages |
+| `hidePostDates` | bool | `false` | If true, hides dates on "post" type pages |
+| `toc` | bool | `true` | Show a floating table-of-contents button on pages with headings |
+| `showSource` | bool | `false` | Show a "View source" button linking to the page's source file in the repository |
+| `showPostNav` | bool | `true` | Show previous/next post navigation (side arrows on wide screens, bottom pager on narrow screens) |
+| `pagerSize` | int | — | Posts per page on a list page. Set it in the front matter of the home page, a section, or a term to override the global `pagination.pagerSize` for that node |
+| `sourceRepo` | string | — | Base URL for the repository source browser (e.g. `https://github.com/user/repo/blob/main/`). The page's `.File.Path` is appended automatically. When `enableGitInfo = true` is set, the branch in the URL is replaced with the current commit hash, so the link always points to the exact version of the file |
+
+```toml
+[Params]
+  readingTime = true
+  wordCount = true
+  socialShare = true
+  showRelatedPosts = true
+  disableFigureOverride = true
+  showSource = true
+  showPostNav = true
+  sourceRepo = "https://github.com/user/repo/blob/main/"
+```
+
+### Related Posts
+
+When `showRelatedPosts = true`, each post displays a "See also" list of related content. This uses Hugo's built-in [related-content engine](https://gohugo.io/content-management/related/) (`.Site.RegularPages.Related`), which is index-backed and ranks suggestions by **relevance** rather than site order. The number of items shown is capped by `related_content_limit` (default `5`).
+
+> **Heads up:** Without a `[related]` configuration block, Hugo's defaults rank by the front-matter `keywords` and `date` indices — **not** by `tags`. If your posts rely on `tags` (as the theme historically did), add the `[related]` block below so tag overlap drives the ranking.
+
+The recommended setup preserves and improves on the old tag-based behavior by indexing `tags` (highest weight), then `keywords`, then `date`:
+
+```toml
+# Ranking configuration for showRelatedPosts (Hugo's related-content engine)
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = false
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "keywords"
+    weight = 80
+  [[related.indices]]
+    name = "date"
+    weight = 10
+```
+
+- `threshold` (0–100) controls how strong a match must be before a post is suggested; posts with no qualifying matches show no "See also" section.
+- `includeNewer = true` allows newer posts to be suggested (Hugo excludes them by default).
+- Each `[[related.indices]]` `weight` controls how much that field contributes to the relevance score.
+
+### Table of Contents Panel
+
+When `toc = true` (the default), a list-style button appears in the navbar on pages that have headings or list pages that have posts. Clicking it opens a slide-out panel on the left side of the viewport.
+
+The panel is rendered from `baseof.html`, so a site that overrides `page.html`, `list.html`, or `home.html` still gets it.
+
+**On single pages** (posts, regular pages), the panel shows the page's heading hierarchy extracted from the Table of Contents. An `IntersectionObserver` tracks which heading is currently in view and highlights the corresponding link in the panel.
+
+**On list and home pages**, the panel shows the titles of all posts in the list, not only those on the current pager page. Scrolling through the post previews automatically highlights the currently visible post in the panel.
+
+The panel is a Bootstrap offcanvas. It can be closed by clicking the close button, clicking the backdrop overlay, or pressing `Escape`. Focus stays inside the panel while it is open and returns to the navbar button when it closes.
+
+#### Heading levels
+
+The panel renders Hugo's `.TableOfContents`, so `[markup.tableOfContents]` controls which headings appear. Hugo does not merge `[markup]` from a theme, so set it in your own site configuration:
+
+```toml
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 4
+  ordered = false
+```
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `startLevel` | int | `2` | First heading level collected. Keep it at `2`: the page title is the `h1`, so `1` adds the title to the panel |
+| `endLevel` | int | `3` | Last heading level collected. `4` includes `h4` |
+| `ordered` | bool | `false` | `true` renders `<ol>` with numbers instead of `<ul>` |
+
+The button only appears when the rendered table of contents has at least one item, so a page with no heading in this range shows no panel.
+
+## Big Image Header
+
+Add one or more full-width header images to the home page. Multiple images cycle automatically with a fade transition.
+
+```toml
+[[Params.bigimg]]
+  src = "/img/triangle.jpg"
+  desc = "Triangle"
+[[Params.bigimg]]
+  src = "/img/sphere.jpg"
+  desc = "Sphere"
+  position = "center top"
+[[Params.bigimg]]
+  src = "/img/hexagon.jpg"
+  desc = "Hexagon"
+```
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `src` | string | — | Image path (absolute or relative) |
+| `desc` | string | — | Image description (supports Markdown links) |
+| `position` | string | — | CSS `background-position` value (e.g. `"center top"`) |
+| `headerImgStyle` | string | `"big"` | Header image height: `"big"` (default, 100–150px padding) or `"narrow"` (25px padding, crops image top and bottom) |
+
+```toml
+[Params]
+  headerImgStyle = "narrow"
+```
+
+The cycling timing is also configurable:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `bigimgFadeDuration` | float | `1` | Fade duration in seconds between header images (`0` for an instant switch) |
+| `bigimgInterval` | float | `6` | Delay in seconds between image fades (how long each image is shown) |
+
+```toml
+[Params]
+  bigimgFadeDuration = 1.5
+  bigimgInterval = 8
+```
+
+See [Pages & Layouts](../pages-and-layouts/#big-image-headers) for per-page big image headers and visual examples.
+
+## Image Processing
+
+Images that Hugo can reach as resources (files in a page bundle or under the site's `assets/` directory) are processed at build time: post preview thumbnails are cropped to a square, header images are capped in width, and figures, galleries, and plain Markdown images get resized `srcset` variants. Images under `static/` are never touched.
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `imageProcessing` | bool | `true` | Set to `false` to serve every image unchanged |
+| `imageWidths` | list | `[480, 800, 1200, 1600]` | Widths generated for figure `srcset` variants (widths larger than the source are skipped) |
+| `bigimgWidth` | int | `1920` | Maximum width for page-resource header images |
+
+```toml
+[Params]
+  imageWidths = [640, 1280]
+  bigimgWidth = 2560
+```
+
+See [Figures & Galleries](../figures-and-galleries/#page-bundles-and-image-processing) for shortcode details.
+
+### Where processed images are stored
+
+Hugo writes every resized or cropped image to the file cache in `resources/_gen/images/`, next to your `hugo.toml`. The cache is keyed by the source image and the operation, so an unchanged image is processed once and then copied on later builds. Image processing is the slowest part of a Beautiful Hugo build, so a warm cache makes a large difference.
+
+`[caches]` controls the location and the lifetime of each cache:
+
+```toml
+[caches]
+  [caches.images]
+    dir = ":resourceDir/_gen"
+    maxAge = -1
+  [caches.assets]
+    dir = ":resourceDir/_gen"
+    maxAge = -1
+```
+
+These are the Hugo defaults. `maxAge = -1` keeps entries forever; `hugo --gc` removes the entries that the last build did not use. You can either commit `resources/` to the repository or keep it out of version control and restore it in CI.
+
+The example site does not commit `resources/`. Both workflows in `.github/workflows/` restore it instead:
+
+```yaml
+- name: Cache processed images
+  uses: actions/cache@v4
+  with:
+    path: exampleSite/resources/_gen
+    key: hugo-resources-${{ env.HUGO_VERSION }}-${{ hashFiles('exampleSite/content/**', 'exampleSite/hugo.toml', 'assets/**') }}
+    restore-keys: hugo-resources-${{ env.HUGO_VERSION }}-
+```
+
+The Hugo version is part of the key because a Hugo upgrade can change the output of an image operation. The `restore-keys` prefix reuses the newest older cache when the key does not match, so only the changed images are processed again.
+
+### Minification
+
+`hugo --minify` minifies the generated HTML, XML, and JSON. The `[minify]` block tunes it:
+
+```toml
+[minify]
+  minifyOutput = true
+  [minify.tdewolff.html]
+    keepWhitespace = false
+```
+
+`minifyOutput = true` has the same effect as the command-line flag. The theme's own CSS and JS bundles are separate: `css.html` and `js.html` minify them only when the build is a production build (`hugo.IsProduction`), whatever `[minify]` says.
+
+## Syntax Highlighting
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `useHLJS` | bool | `false` | Use client-side Highlight.js instead of Hugo's built-in Chroma |
+
+{{< tabs >}} {{< tab "Chroma" >}}
+
+```toml
+[markup.highlight]
+  noClasses = false
+
+[markup.goldmark.parser.attribute]
+  block = true
+```
+
+- `noClasses = false` is required for Chroma to use an external CSS file (`assets/css/syntax.css`)
+
+{{< /tab >}} {{< tab "Highlight.js" >}}
+
+```toml
+[Params]
+  useHLJS = true
+
+[markup.highlight]
+  codeFences = false
+```
+
+When `useHLJS = true`, Highlight.js is loaded from CDN (or fetched at build time and served from the site if `selfHosted = true`) with a default light theme and a dark theme that activates automatically. You do not need Chroma code fences — Highlight.js applies styles via JavaScript.
+
+{{< /tab >}} {{< /tabs >}}
+
+See [Code Blocks](../code-blocks/) for details and examples.
+
+### Including External Files
+
+The `include-code` shortcode reads a source file from disk and renders it with syntax highlighting. See [Code Blocks](../code-blocks/#including-external-files) for the full parameter reference and live examples.
+
+## Comment Systems
+
+Beautiful Hugo supports five comment systems (Disqus, Giscus, Utterances, Cusdis, Staticman). Each is enabled per-page with `comments: true` in front matter. See [Comments & Social](../comments-and-social/) for configuration details.
+
+## Analytics & Search
+
+Google Analytics, Piwik/Matomo, and search (GCSE or built-in Fuse) are covered in [SEO & i18n](../seo-and-i18n/#analytics-and-search). The search index size is controlled with `Params.searchSections` and `Params.searchContentWords`; see [Search Index](../seo-and-i18n/#search-index).
+
+## SEO Robot Meta Tags
+
+Site-wide `<meta name="robots">` tags can be set from `hugo.toml`. These settings only apply to pages in `mainSections`; other pages can set tags via front matter.
+
+See [SEO & i18n](../seo-and-i18n/) for the full reference including per-page overrides, AI summary limits, and all supported tags.
+
+## Custom HTML Hooks
+
+Beautiful Hugo provides partial "hooks" that let you inject custom HTML at specific points in the layout without forking the theme. To use a hook, create the corresponding file in your site's `layouts/_partials/` directory — the theme's own copy is an empty stub.
+
+| Partial | Injects Near | Example Use |
+|---------|-------------|-------------|
+| `head_custom.html` | End of `<head>`, before `</head>` | Extra CSS, preconnect hints, meta tags |
+| `nav_custom.html` | Inside the navbar, after menu items | CTA button, search box, custom nav link |
+| `header_custom.html` | Inside the page header, after title/subtitle | Hero CTA button, banner |
+| `before_content.html` | Before `.Content` on single pages | Affiliate disclosure, reading-time banner |
+| `after_content.html` | After `.Content`, before tags/share/related | Newsletter signup, author bio, ad unit |
+| `footer_custom.html` | After `</footer>`, before scripts | Custom analytics, chat widget |
+| `scripts_custom.html` | After all theme JS, before `</body>` | Custom JS that depends on Bootstrap |
+
+See [Theming](../theming/#custom-stylesheets) for details on using these hooks for CSS and script customization.
+
+## Miscellaneous
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `disclaimerText` | string | Disclaimer text shown in footer with a yellow-bordered box |
+| `commit` | string | Base URL for Git commit links (appended with `.GitInfo.Hash`) |
+| `disableCanonical` | bool | Suppress the `<link rel="canonical">` tag site-wide (see [SEO & i18n — Canonical URLs](../seo-and-i18n/#canonical-urls)) |
+
+Git features (`commit`) require `enableGitInfo = true` at the top level of your config (not under `[Params]`) so Hugo populates `.GitInfo`. Example:
+
+```toml
+commit = "https://github.com/user/repo/commit/"
+```
+
+## Per-Page Front Matter
+
+These options can be set in the front matter of any page or post:
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `subtitle` | string | Page/post subtitle |
+| `bigimg` | list | Per-page big header images (same format as site-level) |
+| `headerImgStyle` | string | Header image height: `"big"` or `"narrow"` |
+| `fullWidth` | bool | Full-width content layout (no sidebar offset) |
+| `socialShare` | bool | Override site-level social sharing for this page |
+| `showAvatar` | bool | Show/hide navbar avatar (default: `true`) |
+| `comments` | bool | Enable comments on this page |
+| `hidden` | bool | Hide from list pages |
+| `image` | string | Post preview image (circular, shown in list pages) |
+| `video` | string | Post preview video (loop, autoplay, muted) |
+| `summary` | string | Custom summary text |
+| `description` | string | Page description for meta tags and structured data (see [SEO & i18n — Description Cascade](../seo-and-i18n/#description-cascade)) |
+| `type` | string | Content type that determines template behavior: `"page"`, `"post"`, `"recipe"`, or `"publication"` (see [Pages & Layouts](../pages-and-layouts/)) |
+| `author` | string/list | Per-page author(s) (string or list of strings; supports Markdown links, e.g. `"[Jane Doe](https://example.com)"`) |
+| `tags` | list | Tags for categorization |
+| `categories` | list | Categories for grouping posts |
+| `share_img` | string | Social sharing image (falls back to `image`, then the site `share_img`, then `logo`) |
+| `ExpiryDate` | date | Adds `<meta name="robots" content="unavailable_after: ...">` |
+| `seo` | map | Per-page robot meta tag overrides (see [SEO & i18n](../seo-and-i18n/)) |
+| `canonicalURL` | string | Override the canonical link for this page (absolute or relative; see [SEO & i18n — Canonical URLs](../seo-and-i18n/#canonical-urls)) |
+| `disableCanonical` | bool | Suppress the canonical link tag for this page |
+| `ghRepo` | string | GitHub repo for buttons (`"user/repo"`) |
+| `ghBadge` | list | Which badges to show: `["star","watch","fork","follow"]` |
+| `ghCount` | bool | Show count on GitHub buttons (default: `true`) |
+| `showPageDates` | bool | Show dates on page-type pages |
+| `hidePostDates` | bool | `false` | If true, hides dates on "post" type pages |
+| `navShort` | bool | Make navbar short on this page |
+| `toc` | bool | Show/hide table of contents for this page (overrides site-level `toc`) |
+| `showSource` | bool | Override site-level `showSource` for this page |
+| `showPostNav` | bool | Override site-level `showPostNav` for this page |
+| `mathEngine` | string | Override site-level `mathEngine` for this page (`"katex"`, `"mathjax"`, or `"none"`) |
+| `math` | bool | Load the math files on this page even if no math is found (needs passthrough) |
+| `mathRender` | string | Override site-level `mathRender` for this page (`"client"` or `"server"`) |
+| `colorScheme` | string | Override site-level `colorScheme` for this page (`"auto"`, `"dark"`, or `"light"`) |
+| `useHLJS` | bool | Override site-level `useHLJS` for this page |
+| `readingTime` | bool | Override site-level `readingTime` for this page |
+| `wordCount` | bool | Override site-level `wordCount` for this page |
+| `hideAuthor` | bool | Override site-level `hideAuthor` for this page |
+| `showRelatedPosts` | bool | Override site-level `showRelatedPosts` for this page |
+| `related_content_limit` | int | Override site-level `related_content_limit` for this page |
+
+## Recipe Pages
+
+Beautiful Hugo supports recipe content with automatic [schema.org/Recipe](https://schema.org/Recipe) structured data (JSON-LD) and a rendered recipe card below the page body. This provides SEO benefits — search engines can display rich recipe results with cook times, ingredients, and more.
+
+### Setup
+
+Create content files with `type: recipe` and a `recipe` front matter map:
+
+```yaml
+---
+title: "Classic Chocolate Chip Cookies"
+type: recipe
+date: 2026-05-12
+tags: ["baking", "dessert"]
+recipe:
+  prepTime: "PT15M"
+  cookTime: "PT12M"
+  totalTime: "PT27M"
+  yield: "24 cookies"
+  category: "Dessert"
+  cuisine: "American"
+  calories: "180 kcal"
+  ingredients:
+    - "2¼ cups all-purpose flour"
+    - "1 tsp baking soda"
+    - "1 cup unsalted butter, softened"
+  instructions:
+    - name: "Preheat oven"
+      text: "Preheat oven to 375°F."
+    - name: "Mix"
+      text: "Combine flour, baking soda, and salt."
+---
+```
+
+### Recipe front matter reference
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `recipe.ingredients` | list | **yes** | List of ingredient strings (supports Markdown) |
+| `recipe.instructions` | list | **yes** | List of step strings **or** maps with `name` and `text` keys |
+| `recipe.prepTime` | string | no | ISO 8601 duration (e.g. `"PT15M"` = 15 minutes) |
+| `recipe.cookTime` | string | no | ISO 8601 duration |
+| `recipe.totalTime` | string | no | ISO 8601 duration |
+| `recipe.yield` | string | no | Recipe yield (e.g. `"4 servings"`, `"24 cookies"`) |
+| `recipe.category` | string | no | Recipe category (e.g. `"Dessert"`, `"Main Course"`) |
+| `recipe.cuisine` | string | no | Cuisine type (e.g. `"Italian"`, `"Japanese"`) |
+| `recipe.calories` | string | no | Calories per serving (e.g. `"250 kcal"`) |
+
+### How it works
+
+- **Structured data**: Pages with `type: recipe` and a `recipe` param emit a combined `Article` + `Recipe` JSON-LD block (as recommended by Google for recipe blog posts). Other pages continue to emit the standard `Article` schema.
+- **Visual rendering**: A recipe card is automatically rendered below the page body content, displaying metadata (prep time, cook time, yield, etc.), an ingredients list, and numbered instructions.
+- **Archetype**: Use `hugo new recipe/my-recipe.md` to get a pre-filled recipe front matter scaffold.
+- **Page behavior**: Recipe pages behave like blog posts (showing post meta, post navigation, and comments) since they are not `type: page`.
+
+### ISO 8601 duration format
+
+Time values use the ISO 8601 duration format:
+
+| Example | Meaning |
+|---------|---------|
+| `PT15M` | 15 minutes |
+| `PT1H30M` | 1 hour 30 minutes |
+| `PT2H` | 2 hours |
+
+`P` marks the start, `T` separates date from time components, and `H`/`M`/`S` are hours, minutes, seconds.
+
+## Publication Pages
+
+Beautiful Hugo supports academic publications, one page per paper. A `type: publication` page shows the authors and venue under the title, and link buttons and a BibTeX entry above the page body, and its `head` gets [Highwire Press `citation_*` meta tags](https://scholar.google.com/intl/en/scholar/inclusion.html#indexing) so Google Scholar can index the paper, plus [schema.org/ScholarlyArticle](https://schema.org/ScholarlyArticle) JSON-LD. The section list groups the papers by year. See the [demo section](../../publication/).
+
+### Setup
+
+Create content files with `type: publication` and a `publication` front matter map. The page body is the abstract or a short description:
+
+```yaml
+---
+title: "On the Optimal Steeping Time of Static Site Generators"
+type: publication
+date: 2026-03-14
+tags: ["hugo", "tea"]
+publication:
+  authors: ["Ada Teapot", "Some Person"]
+  kind: article
+  venue: Journal of Implausible Web Engineering
+  volume: 42
+  number: 7
+  pages: 1-11
+  doi: "10.0000/jiwe.2026.0001"
+  arxiv: "0000.00001"
+  pdf: paper.pdf
+  code: https://example.com/teapot
+---
+
+We steep a static site generator in hot water and measure build times.
+```
+
+Quote `doi` and `arxiv` values, or YAML parses them as numbers. `date` is the publication date; the section list groups by its year. Add a `_index.md` to the section and link it from the navbar.
+
+For a preprint on a server other than arXiv, such as bioRxiv or medRxiv, use `preprint` with the server name and the full URL. Add more link buttons with `links`:
+
+```yaml
+publication:
+  preprint:
+    server: bioRxiv
+    url: https://www.biorxiv.org/content/10.1101/2024.01.01.123456v1
+    id: "10.1101/2024.01.01.123456"
+  links:
+    - label: Dataset
+      url: https://example.com/data
+      icon: fas fa-database
+```
+
+### Publication front matter reference
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `publication.authors` | list | no | Author names in citation order. Falls back to the page `author` or the site author. A name equal to `Params.author.name` is shown in bold |
+| `publication.kind` | string | no | BibTeX entry type: `article` (default), `inproceedings`, `book`, `incollection`, `phdthesis`, `mastersthesis`, `techreport`, `misc`, and so on. Selects the venue field in the BibTeX and meta tags |
+| `publication.venue` | string | no | Journal, conference proceedings, institution, or school (supports Markdown) |
+| `publication.volume` | string | no | Volume |
+| `publication.number` | string | no | Issue number |
+| `publication.pages` | string | no | Page range (`"1-11"`) or article number |
+| `publication.publisher` | string | no | Publisher |
+| `publication.doi` | string | no | DOI, without the `https://doi.org/` prefix |
+| `publication.arxiv` | string | no | arXiv identifier (`"0000.00001"`) |
+| `publication.preprint.server` | string | with `preprint` | Preprint server name (`bioRxiv`). Used as the button label and the BibTeX `archivePrefix` |
+| `publication.preprint.url` | string | with `preprint` | Full URL of the preprint |
+| `publication.preprint.id` | string | no | Preprint identifier. Becomes the BibTeX `eprint` when `arxiv` is not set |
+| `publication.pdf` | string | no | PDF: a page-bundle resource, a path under `static/`, or a URL. Becomes `citation_pdf_url` |
+| `publication.url` | string | no | Publisher or project page |
+| `publication.code` | string | no | Source code URL |
+| `publication.slides` | string | no | Slides (resource, static path, or URL) |
+| `publication.poster` | string | no | Poster (resource, static path, or URL) |
+| `publication.video` | string | no | Video URL |
+| `publication.links` | list | no | More link buttons, each with `label`, `url` (resource, static path, or URL), and an optional Font Awesome `icon` (default `fas fa-link`) |
+| `publication.key` | string | no | BibTeX citation key. Defaults to the first author's last name plus the year (`teapot2026`) |
+| `publication.bibtex` | string | no | Hand-written BibTeX entry. Replaces the generated one |
+
+### How it works
+
+- **Meta tags**: Each publication page emits `citation_title`, `citation_author`, `citation_publication_date`, `citation_journal_title` (or the conference, dissertation, or technical report equivalent), `citation_volume`, `citation_issue`, `citation_firstpage`, `citation_lastpage`, `citation_doi`, `citation_arxiv_id`, `citation_pdf_url`, and `citation_abstract_html_url`. Google Scholar needs one page per paper, so a listing page or a Markdown table is not indexed.
+- **Structured data**: Pages with `type: publication` emit a `ScholarlyArticle` JSON-LD block in place of the `Article` one, with the authors, the periodical, volume, issue, page range, DOI, and PDF. The DOI, arXiv, preprint, and `url` links go in `sameAs`.
+- **Visual rendering**: The page header shows the authors (site author in bold) and the venue line under the title. Link buttons and a collapsible BibTeX entry are rendered above the page body.
+- **Section list**: A section of publication pages (for example `content/publication/`) is listed grouped by year, newest first, with the authors, venue, and links. It is not paginated. The `publications` shortcode renders the same list on any page.
+- **Archetype**: Use `hugo new publication/my-paper.md` to get a pre-filled front matter scaffold.
+- **Page behavior**: Publication pages behave like blog posts (previous/next navigation and comments) since they are not `type: page`.

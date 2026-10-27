@@ -1,0 +1,118 @@
+{{- $searchProvider := partial "search-provider.html" . -}}
+{{- $togglerLeft := eq (.Site.Params.mobileMenuPosition | default "right") "left" -}}
+<nav class="navbar navbar-expand-md navbar-light navbar-custom fixed-top{{ if $togglerLeft }} navbar-toggler-left{{ end }}">
+  <div class="container-fluid">
+    {{ if $togglerLeft }}{{ partial "nav-toggler.html" . }}{{ end }}
+    <a class="navbar-brand" href="{{ "" | relLangURL }}">{{ .Site.Params.homeTitle | default .Site.Title }}</a>
+    <div class="d-flex align-items-center">
+      {{ if ne ($.Param "toc") false }}
+      {{ $tocState := partial "func/toc-state.html" . }}
+      {{ if or $tocState.hasToc $tocState.hasListPages }}
+      <button class="theme-toggle" id="toc-toggle" aria-controls="toc-panel" aria-expanded="false" aria-label="{{ i18n "tocLabel" | default "Table of Contents" }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ i18n "tocLabel" | default "Table of Contents" }}">
+        <span class="fas fa-list"></span>
+      </button>
+      {{ end }}
+      {{ end }}
+      {{ if eq ($.Param "colorScheme" | default "auto") "auto" }}
+      <button class="theme-toggle" id="theme-toggle" aria-label="{{ i18n "themeToggleLabel" }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-tooltip-auto="{{ i18n "themeTooltipAuto" }}" data-tooltip-light="{{ i18n "themeTooltipLight" }}" data-tooltip-dark="{{ i18n "themeTooltipDark" }}" title="{{ i18n "themeTooltipAuto" }}">
+        <span class="fas fa-circle-half-stroke" id="theme-icon-auto"></span>
+        <span class="fas fa-sun" id="theme-icon-light" style="display: none;"></span>
+        <span class="fas fa-moon" id="theme-icon-dark" style="display: none;"></span>
+      </button>
+      {{ end }}
+      {{ if ne $searchProvider "none" }}
+      <button class="theme-toggle" id="search-toggle" aria-label="{{ i18n "searchToggleLabel" | default "Search" }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ i18n "searchToggleLabel" | default "Search" }}">
+        <span class="fas fa-magnifying-glass"></span>
+      </button>
+      {{ end }}
+      {{ if not $togglerLeft }}{{ partial "nav-toggler.html" . }}{{ end }}
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="navbar-nav ms-auto">
+        {{ partialCached "nav-menu.html" . .Language.Lang }}
+
+          {{ if hugo.IsMultilingual }}
+            {{ $pageTranslations := .AllTranslations }}
+            {{ $siteLanguages := .Site.Home.AllTranslations }}
+            {{ if ge (len $siteLanguages) 3 }}
+              {{ if .IsTranslated }}
+                <li class="nav-item dropdown" >
+                  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ i18n "languageSwitcherLabel" }}" aria-label="{{ i18n "languageSwitcherLabel" }}">
+                    <span class="fas fa-globe" aria-hidden="true"></span> <span class="d-md-none">{{ i18n "languageSwitcherLabel" }}</span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    {{ range $pageTranslations }}
+                      {{ if not (eq .Lang $.Site.Language.Lang) }}
+                      <li><a class="dropdown-item" href="{{ .Permalink }}">{{ partial "func/language-name.html" . }}</a></li>
+                      {{ end }}
+                    {{ end }}
+                  </ul>
+                </li>
+              {{ end }}
+            {{ else }}
+            {{ if .IsTranslated }}
+              {{ range .Translations }}
+                <li class="nav-item" >
+                  <a class="nav-link" href="{{ .Permalink }}"><span class="fas fa-globe" aria-hidden="true"></span> {{ partial "func/language-name.html" . }}</a>
+                </li>
+              {{ end}}
+            {{ end }}
+          {{ end }}
+        {{ end }}
+
+        {{ with .Site.Params.gcse }}
+          <li class="nav-item" >
+            <a class="nav-link" href="#modalSearch" data-bs-toggle="modal" data-bs-target="#modalSearch" style="outline: none;">
+              <span class="d-md-none">{{ i18n "gcseLabelShort" }}</span> <span id="searchGlyph" class="fas fa-magnifying-glass" aria-hidden="true"></span>
+            </a>
+          </li>
+        {{ end }}
+      </ul>
+      {{ partial "nav_custom.html" . }}
+    </div>
+
+    {{ $page := . }}
+    {{ if ne (.Params.showAvatar | default true) false }}
+      {{ with .Site.Params.logo }}
+        <div class="avatar-container">
+          <div class="avatar-img-border">
+            <a title="{{ $page.Site.Title }}" href="{{ "" | relLangURL }}">
+            {{- $image := resources.Get . -}}
+            {{ if $image }}
+              <img class="avatar-img" src="{{ ($image.Fit "300x300 q100").RelPermalink }}" alt="{{ $page.Site.Title }}" />
+            {{else}}
+              <img class="avatar-img" src="{{ strings.TrimPrefix "/" . | relURL }}" alt="{{ $page.Site.Title }}" />
+             {{end}}
+            </a>
+          </div>
+        </div>
+      {{ end }}
+    {{ end }}
+
+  </div>
+</nav>
+
+<!-- Navbar Search Overlay -->
+{{ partialCached "nav-search.html" . .Language.Lang }}
+
+<!-- Search Modal -->
+{{ $page := . }}
+{{ with .Site.Params.gcse }}
+  <div id="modalSearch" class="modal fade" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="searchModalTitle">{{ i18n "gcseLabelLong" $page }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <gcse:search></gcse:search>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ i18n "gcseClose" }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{{ end }}

@@ -1,0 +1,65 @@
+<article class="post-preview">
+    <a href="{{ .RelPermalink }}">
+        <h2 class="post-title">{{ .Title }}</h2>
+        {{ if .Params.subtitle }}
+        <h3 class="post-subtitle">
+            {{ .Params.subtitle }}
+        </h3>
+        {{ end }}
+    </a>
+
+    <p class="post-meta">
+        {{ partial "post_meta.html" . }}
+    </p>
+    <div class="post-entry-container">
+        {{ $hasThumbnail := isset .Params "thumbnail" }}
+        {{ $thumbnail := cond $hasThumbnail .Params.thumbnail .Params.image }}
+        {{ if $thumbnail }}
+        <div class="post-image">
+            <a href="{{ .RelPermalink }}">
+                {{- with partial "func/image-resource.html" (dict "Page" . "Src" $thumbnail) }}
+                {{- $small := .Fill "192x192" }}
+                {{- $large := .Fill "384x384" }}
+                <img src="{{ $small.RelPermalink }}" srcset="{{ $small.RelPermalink }} 1x, {{ $large.RelPermalink }} 2x" width="192" height="192" loading="lazy" alt="{{ $.Title }}" />
+                {{- else }}
+                <img src="{{ strings.TrimPrefix "/" $thumbnail | relURL }}" alt="{{ .Title }}" />
+                {{- end }}
+            </a>
+        </div>
+        {{ else if and (not $hasThumbnail) .Params.video }}
+        <div class="post-image">
+            <a href="{{ .RelPermalink }}">
+                <video loop autoplay muted playsinline>
+                    <source src="{{ strings.TrimPrefix "/" .Params.video | relURL }}">
+                </video>
+            </a>
+        </div>
+        {{ end }}
+        <div class="post-entry">
+            {{ if or (.Truncated) (.Params.summary) (eq .Type "recipe") }}
+            {{ .Summary }}
+            <a href="{{ .RelPermalink }}" class="post-read-more">[{{ i18n "readMore" }}]</a>
+            {{ else }}
+            {{ .Content }}
+            {{ end }}
+        </div>
+    </div>
+
+    {{ if or .Params.categories .Params.tags }}
+    <div class="blog-tags">
+        {{ if .Params.categories }}
+        <span class="blog-tags-label">{{ i18n "categoriesLabel" }}</span>
+        {{ range .GetTerms "categories" }}
+        <a href="{{ .RelPermalink }}" class="blog-tags-category">{{ .Data.Term }}</a>&nbsp;
+        {{ end }}
+        {{ end }}
+        {{ if .Params.tags }}
+        <span class="blog-tags-label">{{ i18n "tagsLabel" | default "Tags: " }}</span>
+        {{ range .GetTerms "tags" }}
+        <a href="{{ .RelPermalink }}">{{ .Data.Term }}</a>&nbsp;
+        {{ end }}
+        {{ end }}
+    </div>
+    {{ end }}
+
+</article>

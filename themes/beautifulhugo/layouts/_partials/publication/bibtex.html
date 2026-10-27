@@ -1,0 +1,51 @@
+{{- /*
+  Returns the BibTeX entry of a publication page: `publication.bibtex` from
+  front matter when set, otherwise one generated from the other fields.
+*/ -}}
+{{- $p := .Params.publication -}}
+{{- $result := "" -}}
+{{- with $p.bibtex -}}
+  {{- $result = trim . "\n" -}}
+{{- else -}}
+{{- $kind := $p.kind | default "article" -}}
+{{- $authors := partial "func/publication-authors.html" . -}}
+{{- $key := $p.key -}}
+{{- if not $key -}}
+  {{- $key = .File.ContentBaseName -}}
+  {{- with $authors -}}
+    {{- $key = index (last 1 (split (index . 0) " ")) 0 -}}
+  {{- end -}}
+  {{- $key = printf "%s%s" (replaceRE `[^a-z0-9]` "" (lower $key)) (.Date.Format "2006") -}}
+{{- end -}}
+{{- $fields := slice (dict "k" "title" "v" (printf "{%s}" .Title)) -}}
+{{- with $authors -}}
+  {{- $fields = $fields | append (dict "k" "author" "v" (delimit . " and ")) -}}
+{{- end -}}
+{{- with $p.venue -}}
+  {{- $venueKey := "journal" -}}
+  {{- if in (slice "inproceedings" "conference" "incollection" "inbook") $kind }}{{ $venueKey = "booktitle" }}{{ end -}}
+  {{- if in (slice "phdthesis" "mastersthesis" "thesis") $kind }}{{ $venueKey = "school" }}{{ end -}}
+  {{- if in (slice "techreport") $kind }}{{ $venueKey = "institution" }}{{ end -}}
+  {{- $fields = $fields | append (dict "k" $venueKey "v" .) -}}
+{{- end -}}
+{{- $fields = $fields | append (dict "k" "year" "v" (.Date.Format "2006")) -}}
+{{- with $p.volume }}{{ $fields = $fields | append (dict "k" "volume" "v" (print .)) }}{{ end -}}
+{{- with $p.number }}{{ $fields = $fields | append (dict "k" "number" "v" (print .)) }}{{ end -}}
+{{- with $p.pages }}{{ $fields = $fields | append (dict "k" "pages" "v" (replace (print .) "-" "--")) }}{{ end -}}
+{{- with $p.publisher }}{{ $fields = $fields | append (dict "k" "publisher" "v" .) }}{{ end -}}
+{{- with $p.doi }}{{ $fields = $fields | append (dict "k" "doi" "v" (print .)) }}{{ end -}}
+{{- with $p.arxiv -}}
+  {{- $fields = $fields | append (dict "k" "eprint" "v" (print .)) (dict "k" "archivePrefix" "v" "arXiv") -}}
+{{- else -}}
+  {{- with $p.preprint -}}
+    {{- with .id }}{{ $fields = $fields | append (dict "k" "eprint" "v" (print .)) (dict "k" "archivePrefix" "v" $p.preprint.server) }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- with $p.url }}{{ $fields = $fields | append (dict "k" "url" "v" .) }}{{ end -}}
+{{- $lines := slice -}}
+{{- range $fields -}}
+  {{- $lines = $lines | append (printf "  %-13s= {%s}" .k .v) -}}
+{{- end -}}
+  {{- $result = printf "@%s{%s,\n%s\n}" $kind $key (delimit $lines ",\n") -}}
+{{- end -}}
+{{- return $result -}}

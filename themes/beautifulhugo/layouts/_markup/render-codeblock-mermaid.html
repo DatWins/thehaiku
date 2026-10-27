@@ -1,0 +1,3 @@
+{{- /* Render a ```mermaid fenced code block as a diagram.
+       An align attribute, as in {align="center"}, sets the alignment. */ -}}
+{{- partial "mermaid.html" (dict "Page" .Page "Inner" .Inner "Align" (index .Attributes "align")) -}}

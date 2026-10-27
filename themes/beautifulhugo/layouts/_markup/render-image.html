@@ -1,0 +1,54 @@
+{{- /*
+  Image render hook: routes Markdown images through the theme image
+  helpers. Page-bundle and assets/ images get resized variants, a
+  srcset, and intrinsic dimensions. Images under static/, remote URLs,
+  SVGs, and every image when `Params.imageProcessing = false` fall back
+  to a plain <img>.
+
+  Markdown attributes (`{width=300}` on the line after the image) apply when
+  the site sets `wrapStandAloneImageWithinParagraph = false` and block
+  attributes on. A numeric `width` or `height` also caps the generated
+  variants, so a small display size does not serve a large file.
+*/ -}}
+{{- $src := .Destination -}}
+{{- $attrs := .Attributes -}}
+{{- $width := $attrs.width | default "" -}}
+{{- $height := $attrs.height | default "" -}}
+{{- $srcset := "" -}}
+{{- $sizes := "(max-width: 768px) 100vw, 768px" -}}
+{{- with partial "func/image-resource.html" (dict "Page" .Page "Src" $src) -}}
+  {{- $img := . -}}
+  {{- $w := 0 -}}
+  {{- $h := 0 -}}
+  {{- if findRE `^\d+(px)?$` $width -}}{{- $w = int (strings.TrimSuffix "px" $width) -}}{{- end -}}
+  {{- if findRE `^\d+(px)?$` $height -}}{{- $h = int (strings.TrimSuffix "px" $height) -}}{{- end -}}
+  {{- if and (gt $w 0) (lt $w $img.Width) -}}
+    {{- $img = $img.Resize (printf "%dx" $w) -}}
+  {{- else if and (gt $h 0) (lt $h $img.Height) -}}
+    {{- $img = $img.Resize (printf "x%d" $h) -}}
+  {{- end -}}
+  {{- $set := partial "func/image-srcset.html" $img -}}
+  {{- $src = $set.src.RelPermalink -}}
+  {{- $srcset = $set.srcset -}}
+  {{- /* A non-numeric value such as 50% is kept as written, without an intrinsic partner. */ -}}
+  {{- if and (or (not $width) $w) (or (not $height) $h) -}}
+    {{- $width = $img.Width -}}
+    {{- $height = $img.Height -}}
+  {{- end -}}
+  {{- if lt $img.Width 768 -}}
+    {{- $sizes = printf "(max-width: %dpx) 100vw, %dpx" $img.Width $img.Width -}}
+  {{- end -}}
+{{- else -}}
+  {{- if strings.HasPrefix $src "/" -}}
+    {{- $src = strings.TrimPrefix "/" $src | relURL -}}
+  {{- end -}}
+{{- end -}}
+<img src="{{ $src | safeURL }}"
+  {{- with $srcset }} srcset="{{ . }}" sizes="{{ $sizes }}"{{ end }}
+  {{- with $width }} width="{{ . }}"{{ end }}
+  {{- with $height }} height="{{ . }}"{{ end }}
+  {{- range $k, $v := $attrs }}
+    {{- if not (in (slice "width" "height") $k) }} {{ $k }}="{{ $v }}"{{ end }}
+  {{- end }}
+  {{- with .PlainText }} alt="{{ . }}"{{ end }}
+  {{- with .Title }} title="{{ . }}"{{ end }} loading="lazy">

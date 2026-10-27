@@ -1,0 +1,20 @@
+{{- /*
+  Feature flags that shortcodes and render hooks set on Page.Store, so the
+  head can load the matching assets once. A list node also honours the flags
+  of the pages its current pager previews, because their shortcodes run
+  against their own Store, not the node's.
+
+  Takes: the page.
+  Returns: a dict of bools, "figure", "mermaid" and "tabsSync".
+*/ -}}
+{{- $pages := slice . -}}
+{{- if in (slice "home" "section" "taxonomy" "term") .Kind -}}
+  {{- range (partial "func/paginate.html" .).Pages }}{{ $pages = $pages | append . }}{{ end -}}
+{{- end -}}
+{{- $figure := false -}}{{- $mermaid := false -}}{{- $tabsSync := false -}}
+{{- range $pages -}}
+  {{- if .Store.Get "beautifulhugoFigure" }}{{ $figure = true }}{{ end -}}
+  {{- if .Store.Get "beautifulhugoMermaid" }}{{ $mermaid = true }}{{ end -}}
+  {{- if .Store.Get "beautifulhugoTabsSync" }}{{ $tabsSync = true }}{{ end -}}
+{{- end -}}
+{{- return (dict "figure" $figure "mermaid" $mermaid "tabsSync" $tabsSync) -}}

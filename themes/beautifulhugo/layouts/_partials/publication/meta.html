@@ -1,0 +1,19 @@
+{{- /* Authors and venue lines shown under the title of a publication page. */ -}}
+{{- $p := .Params.publication -}}
+{{- $siteAuthor := .Site.Params.author.name | default "" -}}
+{{- with partial "func/publication-authors.html" . }}
+<p class="publication-authors">
+  {{- range $i, $name := . -}}
+    {{- if $i }}, {{ end -}}
+    {{- if eq $name $siteAuthor }}<strong>{{ $name }}</strong>{{ else }}{{ $name }}{{ end -}}
+  {{- end -}}
+</p>
+{{- end }}
+<p class="publication-venue">
+  {{- with $p.venue }}<em>{{ . | markdownify }}</em>{{ end -}}
+  {{- with $p.volume }} {{ . }}{{ end -}}
+  {{- with $p.number }}({{ . }}){{ end -}}
+  {{- with $p.pages }}, {{ . }}{{ end -}}
+  {{- with $p.publisher }}, {{ . }}{{ end -}}
+  {{- with $p.venue }}, {{ end }}{{ .Date.Format "2006" -}}
+</p>

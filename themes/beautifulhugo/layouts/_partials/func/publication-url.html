@@ -1,0 +1,17 @@
+{{- /*
+  Resolves a publication link (`pdf`, `slides`, ...) to a URL.
+
+  Takes: dict with "Page" and "Src".
+  Returns: the unchanged string for an absolute URL, the permalink of a page
+  resource when `Src` matches one, or a root-relative URL otherwise.
+*/ -}}
+{{- $src := .Src -}}
+{{- $url := $src -}}
+{{- if not (findRE `^[a-z][a-z0-9+.-]*:` $src) -}}
+  {{- with .Page.Resources.Get $src -}}
+    {{- $url = .RelPermalink -}}
+  {{- else -}}
+    {{- $url = strings.TrimPrefix "/" $src | relURL -}}
+  {{- end -}}
+{{- end -}}
+{{- return $url -}}

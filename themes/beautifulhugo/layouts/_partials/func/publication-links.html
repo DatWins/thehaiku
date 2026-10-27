@@ -1,0 +1,39 @@
+{{- /*
+  Returns the external links of a publication page as a slice of dicts with
+  "label", "url", and "icon" keys, in display order.
+*/ -}}
+{{- $p := .Params.publication -}}
+{{- $links := slice -}}
+{{- with $p.doi -}}
+  {{- $links = $links | append (dict "label" "DOI" "url" (printf "https://doi.org/%s" (print .)) "icon" "fas fa-link") -}}
+{{- end -}}
+{{- with $p.pdf -}}
+  {{- $links = $links | append (dict "label" "PDF" "url" (partial "func/publication-url.html" (dict "Page" $ "Src" .)) "icon" "fas fa-file-pdf") -}}
+{{- end -}}
+{{- with $p.arxiv -}}
+  {{- $links = $links | append (dict "label" "arXiv" "url" (printf "https://arxiv.org/abs/%s" (print .)) "icon" "fas fa-file-alt") -}}
+{{- end -}}
+{{- with $p.preprint -}}
+  {{- if not (and .server .url) }}{{ errorf "publication.preprint needs both server and url: %s" $.File.Path }}{{ end -}}
+  {{- $links = $links | append (dict "label" .server "url" .url "icon" "fas fa-file-alt") -}}
+{{- end -}}
+{{- with $p.url -}}
+  {{- $links = $links | append (dict "label" (i18n "publicationWebsite") "url" . "icon" "fas fa-globe") -}}
+{{- end -}}
+{{- with $p.code -}}
+  {{- $links = $links | append (dict "label" (i18n "publicationCode") "url" . "icon" "fas fa-code") -}}
+{{- end -}}
+{{- with $p.slides -}}
+  {{- $links = $links | append (dict "label" (i18n "publicationSlides") "url" (partial "func/publication-url.html" (dict "Page" $ "Src" .)) "icon" "fas fa-desktop") -}}
+{{- end -}}
+{{- with $p.poster -}}
+  {{- $links = $links | append (dict "label" (i18n "publicationPoster") "url" (partial "func/publication-url.html" (dict "Page" $ "Src" .)) "icon" "fas fa-image") -}}
+{{- end -}}
+{{- with $p.video -}}
+  {{- $links = $links | append (dict "label" (i18n "publicationVideo") "url" . "icon" "fas fa-video") -}}
+{{- end -}}
+{{- range $p.links -}}
+  {{- if not (and .label .url) }}{{ errorf "each entry in publication.links needs label and url: %s" $.File.Path }}{{ end -}}
+  {{- $links = $links | append (dict "label" .label "url" (partial "func/publication-url.html" (dict "Page" $ "Src" .url)) "icon" (.icon | default "fas fa-link")) -}}
+{{- end -}}
+{{- return $links -}}

@@ -1,0 +1,469 @@
+---
+title: Pages & Layouts
+subtitle: Page kinds, templates, layout options, and how to create each type of page
+comments: false
+---
+
+Beautiful Hugo uses Hugo's standard template resolution, with a few custom layout options. This page explains every kind of page the theme can produce and how to create each one.
+
+## Page Kinds
+
+Hugo assigns a **kind** to every page based on where it lives in the content directory. The kind determines which template renders the page.
+
+| Kind | URL example | Template | Description |
+|------|-------------|----------|-------------|
+| `home` | `/` | `layouts/list.html` | Site home page |
+| `page` | `/page/about/` | `layouts/page.html` | Standalone content page |
+| `section` | `/post/` | `layouts/list.html` | Section listing (paginated post previews) |
+| `taxonomy` | `/tags/`, `/categories/` | `layouts/taxonomy.html` | All terms in a taxonomy |
+| `term` | `/tags/tutorial/` | `layouts/list.html` | Pages belonging to one term (paginated) |
+| `404` | (any invalid URL) | `layouts/404.html` | Error page |
+
+Additionally, the **`archive`** layout is available via front matter for any content page.
+
+## Home Page
+
+The home page is rendered by `layouts/list.html`. It shows the content of `content/_index.md` at the top (this file is optional), followed by a paginated list of all regular pages whose type is in `mainSections` (default: `["post", "posts"]`).
+
+`mainSections` filters on page **type**, not on directory, so you can list any kind of content on the home page. To include standalone pages alongside posts:
+
+```toml
+[Params]
+  mainSections = ["post", "page"]
+```
+
+Pages keep their own layout when listed this way; only the home list and the archive page change.
+
+To hide the list entirely and show only the `_index.md` content, set `mainSections` to a list that matches no type. An empty list falls back to the default, so use an empty string instead:
+
+```toml
+[Params]
+  mainSections = [""]
+```
+
+To paginate pages from within their own section instead, add a blank `_index.md` to that directory (for example `content/page/_index.md`); the section list at `/page/` then shows them.
+
+Title comes from `homeTitle` (or the site title); `homeTitle` also controls the navbar brand text and footer link. Subtitle comes from `Params.subtitle`. Big images from `[[Params.bigimg]]` cycle in the header.
+
+```toml
+[Params]
+  homeTitle = "My Site"
+  subtitle = "Welcome"
+  mainSections = ["post", "posts"]
+
+[[Params.bigimg]]
+  src = "/img/triangle.jpg"
+  desc = "Triangle"
+```
+
+## Blog Posts
+
+Blog posts live under `content/post/` (or any directory listed in `mainSections`). They use `layouts/page.html` with type `post`, which enables:
+
+- Post metadata in the header (date, reading time, word count, author)
+- Dates are shown unless `hidePostDates: true`
+- Subtitle rendered as an `<h2>`
+- Previous/next post navigation (side arrows on wide screens, bottom pager on narrow screens; disable with `showPostNav = false`)
+- Comments (if `comments: true`)
+- Social sharing buttons
+- Related posts section
+- Tag links
+
+```yaml
+---
+title: "My Blog Post"
+subtitle: "A short description"
+date: 2026-05-11
+categories: ["tutorial"]
+tags: ["hugo", "theme"]
+comments: true
+---
+```
+
+## Regular Pages
+
+Pages under `content/page/` have type `page`. They use the same `page.html` template but with several features disabled by default:
+
+- No post metadata in the header
+- Subtitle rendered as a `<span>` (not a heading)
+- No previous/next post navigation
+- No comments (even if `comments: true`, unless the type is not `page`)
+- Dates hidden unless `showPageDates: true`
+
+```yaml
+---
+title: "About"
+subtitle: "About this site"
+comments: false
+---
+```
+
+## Recipe Pages
+
+Pages with `type: recipe` behave like blog posts (showing post meta, pager, and comments) but additionally emit [schema.org/Recipe](https://schema.org/Recipe) JSON-LD structured data and render a recipe card below the page body. Create them with a `recipe` front matter map:
+
+```yaml
+---
+title: "Classic Chocolate Chip Cookies"
+type: recipe
+date: 2026-05-12
+recipe:
+  prepTime: "PT15M"
+  cookTime: "PT12M"
+  yield: "24 cookies"
+  ingredients:
+    - "2¼ cups all-purpose flour"
+  instructions:
+    - text: "Preheat oven to 375°F."
+---
+```
+
+See [Configuration — Recipe Pages](../configuration/#recipe-pages) for the full `recipe` front matter reference and the archetype scaffold.
+
+## Publication Pages
+
+Pages with `type: publication` describe one academic paper each. They show the authors and venue under the title and a BibTeX entry above the page body, emit Google Scholar `citation_*` meta tags and [schema.org/ScholarlyArticle](https://schema.org/ScholarlyArticle) JSON-LD, and their section list is grouped by year instead of paginated. Create them with a `publication` front matter map:
+
+```yaml
+---
+title: "On the Optimal Steeping Time of Static Site Generators"
+type: publication
+date: 2026-03-14
+publication:
+  authors: ["Ada Teapot", "Some Person"]
+  venue: Journal of Implausible Web Engineering
+  doi: "10.0000/jiwe.2026.0001"
+  pdf: paper.pdf
+---
+```
+
+See the [demo section](../../publication/) and [Configuration — Publication Pages](../configuration/#publication-pages) for the full `publication` front matter reference.
+
+## Section Listings
+
+A section listing page (e.g. `/post/`) shows a paginated list of post previews. It uses `layouts/list.html`. To add content above the post list, create a `_index.md` in the section directory:
+
+```yaml
+---
+title: "Blog"
+---
+Welcome to the blog. Below are all posts in chronological order.
+```
+
+The number of posts per page defaults to the global `pagination.pagerSize` site setting. To override it for one list page (the home page, a section, or a taxonomy term), set `pagerSize` in that page's front matter:
+
+```yaml
+---
+title: "Blog"
+pagerSize: 10
+---
+```
+
+## Taxonomy Pages
+
+Taxonomies group content by terms. Beautiful Hugo includes two by default:
+
+| Taxonomy | Front matter key | URL |
+|----------|-----------------|-----|
+| Tags | `tags` | `/tags/` |
+| Categories | `categories` | `/categories/` |
+
+These are configured in `hugo.toml`:
+
+```toml
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+```
+
+### Taxonomy listing (`/tags/`, `/categories/`)
+
+The `taxonomy.html` template renders an alphabetical list of all terms, each with a page count and links to the pages belonging to that term.
+
+### Term listing (`/tags/tutorial/`)
+
+Individual term pages use `list.html` and show a paginated list of posts with that term.
+
+### Display on posts
+
+Categories and tags are displayed below each post's content on both single post pages and post preview cards. Categories appear first with a "Categories:" label, followed by tags with a "Tags:" label. Both link to their respective taxonomy term pages.
+
+### Adding a custom taxonomy
+
+Add it to both `[taxonomies]` and your posts' front matter:
+
+```toml
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  series = "series"
+```
+
+```yaml
+---
+title: "Part 2"
+tags: ["tutorial"]
+series: ["getting-started"]
+---
+```
+
+This creates `/series/` (taxonomy listing) and `/series/getting-started/` (term listing).
+
+## Archive Page
+
+The archive layout shows a chronological list of **all** regular pages (newest first) with title, optional subtitle, and date. It is not paginated. Hidden pages are excluded.
+
+A horizontal **year selector** at the top lets visitors filter posts by year. An "All" button shows every post with year heading dividers between groups. Selecting a specific year shows only that year's posts. The selected year is stored in the URL hash (e.g. `#2025`), so year views are deep-linkable. Without JavaScript, all posts remain visible.
+
+Create a content page with `layout: archive`:
+
+```yaml
+---
+title: Archives
+layout: archive
+description: All posts in chronological order
+---
+```
+
+The `layout` front matter key tells Hugo to use `layouts/archive.html` instead of the default `page.html`.
+
+## 404 Page
+
+The 404 page uses `layouts/404.html` and displays a random kaomoji with the localized "page not found" message. No configuration needed — Hugo uses it automatically for invalid URLs.
+
+## Choosing a Layout with Front Matter
+
+The `layout` key in front matter selects an alternative template from the theme's `layouts/` directory:
+
+| `layout` value | Template used |
+|----------------|---------------|
+| *(not set)* | `page.html` (for pages) or `list.html` (for sections) |
+| `archive` | `archive.html` — chronological list of all posts |
+
+## Archetypes
+
+Beautiful Hugo ships with archetypes (content templates) that pre-fill front matter when you create new content with `hugo new`:
+
+| Command | Archetype | Front Matter Included |
+|---------|-----------|-----------------------|
+| `hugo new post/my-post.md` | `post.md` | `title`, `subtitle`, `date`, `draft`, `author`, `description`, `categories`, `tags`, `bigimg`, `comments` |
+| `hugo new page/my-page.md` | `page.md` | `title`, `subtitle`, `date`, `draft`, `description`, `comments`, `fullWidth` |
+| `hugo new recipe/my-recipe.md` | `recipe.md` | `title`, `type: recipe`, `date`, `subtitle`, `image`, `tags`, `recipe` map |
+| `hugo new publication/my-paper.md` | `publication.md` | `title`, `type: publication`, `date`, `tags`, `publication` map |
+| `hugo new <section>/foo.md` | `default.md` | `title`, `date`, `draft` |
+
+Hugo selects the archetype based on the content section. If the section directory matches an archetype name (e.g. `post/`, `page/`, `recipe/`), that archetype is used. Otherwise the `default.md` archetype is used.
+
+## Layout Options
+
+Several front matter options affect how a page looks regardless of its kind.
+
+### Big Image Headers
+
+Big images appear as full-width background images in the page header. They can be set at the site level (for the home page) or per-page. See [Configuration — Big Image Header](../configuration/#big-image-header) for site-level config.
+
+#### Per-page
+
+Set `bigimg` in front matter:
+
+```yaml
+---
+title: My Post
+bigimg:
+  - src: /img/sphere.jpg
+    desc: "A sphere"
+---
+```
+
+Or a single image:
+
+```yaml
+---
+title: My Post
+bigimg: [{src: "/img/path.jpg", desc: "A path"}]
+---
+```
+
+In a [page bundle](https://gohugo.io/content-management/page-bundles/), `src` can name a page resource next to `index.md`. Page resources are checked first, then the path is used relative to the site root:
+
+```yaml
+---
+title: My Post
+bigimg: [{src: "header.jpg", desc: "A page resource"}]
+---
+```
+
+A page-resource header image wider than `bigimgWidth` (default 1920 pixels) is resized down before it is served.
+
+### Full-Width Pages
+
+Add `fullWidth: true` to front matter to use the full container width without the standard sidebar offset:
+
+```yaml
+---
+title: My Page
+fullWidth: true
+---
+```
+
+### Navbar Short Mode
+
+Set `navShort: true` to make the navbar permanently short (the compact style that normally appears after scrolling):
+
+```yaml
+---
+title: My Page
+navShort: true
+---
+```
+
+Or set it globally:
+
+```toml
+[Params]
+  navShort = true
+```
+
+### Avatar Visibility
+
+Control whether the avatar/logo appears in the navbar on a per-page basis:
+
+```yaml
+---
+title: My Page
+showAvatar: false
+---
+```
+
+### Hidden Pages
+
+Add `hidden: true` to front matter to create a page that exists at its URL but does not appear in post listings:
+
+```yaml
+---
+title: Secret Page
+hidden: true
+---
+```
+
+The page is still accessible via its direct URL and appears in navigation menus if you add a menu entry, but it won't show up in list pages or RSS feeds.
+
+### Post Preview Images
+
+On list pages, posts can show a rounded thumbnail floated beside the snippet (Medium-style). It is grayscale by default and turns to full color on hover:
+
+```yaml
+---
+title: My Post
+image: /img/avatar-icon.png
+---
+```
+
+Use `thumbnail` to set a dedicated list-view image. It falls back to `image` when unset, so you can crop a separate, square-friendly version just for previews while keeping `image` for sharing/SEO:
+
+```yaml
+---
+title: My Post
+thumbnail: /img/my-post-thumb.png
+image: /img/my-post.png
+---
+```
+
+Setting `thumbnail` to an empty string explicitly suppresses the preview image, even when `image` is set (useful for keeping `image` for sharing/SEO without showing a thumbnail in the list):
+
+```yaml
+---
+title: My Post
+thumbnail: ""
+image: /img/my-post.png
+---
+```
+
+When `thumbnail` or `image` names a page resource (a file in the post's bundle) or a file under `assets/`, Hugo crops it to a square at the two sizes the list view uses, so you do not need to prepare a thumbnail by hand:
+
+```yaml
+---
+title: My Post
+thumbnail: cover.jpg
+---
+```
+
+For a video preview (loop, autoplay, muted) — shown only when no `thumbnail`/`image` is set:
+
+```yaml
+---
+title: My Post
+video: clip.mp4
+---
+```
+
+### Custom Summaries
+
+Override the auto-generated summary with `summary`:
+
+```yaml
+---
+title: My Post
+summary: "A custom summary that appears on list pages instead of the auto-truncated text."
+---
+```
+
+### Per-Page Social Sharing
+
+Override the site-level `socialShare` setting per page:
+
+```yaml
+---
+title: My Post
+socialShare: false
+---
+```
+
+### Per-Page Comments
+
+Enable or disable comments on individual pages:
+
+```yaml
+---
+title: My Post
+comments: true
+---
+```
+
+This works with all comment systems (Disqus, Giscus, Utterances, Cusdis, Staticman). See [Comments & Social](../comments-and-social/) for comment system configuration.
+
+### Show Page Dates
+
+By default, "page" type pages don't show dates. Enable with:
+
+```yaml
+---
+title: My Page
+showPageDates: true
+---
+```
+
+Or globally:
+
+```toml
+[Params]
+  showPageDates = true
+```
+
+### Show Post Dates
+
+By default, "post" type pages show dates. These can be disabled with:
+
+```yaml
+---
+title: My Page
+hidePostDates: true
+---
+```
+
+Or globally:
+
+```toml
+[Params]
+  hidePostDates = true
+```

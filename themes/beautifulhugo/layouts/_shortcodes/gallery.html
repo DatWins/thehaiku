@@ -1,0 +1,68 @@
+<!--
+Put this file in /layouts/shortcodes/gallery.html
+Documentation and licence at https://github.com/liwenyip/hugo-easy-gallery/
+-->
+{{- $.Page.Store.Set "beautifulhugoFigure" true -}}
+<div class="gallery caption-position-{{ with .Get "caption-position" | default "bottom" }}{{.}}{{end}} caption-effect-{{ with .Get "caption-effect" | default "slide" }}{{.}}{{end}} hover-effect-{{ with .Get "hover-effect" | default "zoom" }}{{.}}{{end}} {{ if ne (.Get "hover-transition") "none" }}hover-transition{{end}}" itemscope itemtype="https://schema.org/ImageGallery">
+	{{- $dir := .Get "dir" }}
+	{{- $bundleImages := slice }}
+	{{- with $dir }}
+		{{- $pattern := printf "%s*" (strings.TrimSuffix "/" (strings.TrimPrefix "/" .)) }}
+		{{- if strings.TrimSuffix "/" . }}{{ $pattern = printf "%s/*" (strings.TrimSuffix "/" (strings.TrimPrefix "/" .)) }}{{ end }}
+		{{- $bundleImages = where ($.Page.Resources.Match $pattern) "ResourceType" "image" }}
+	{{- end }}
+	{{- with $bundleImages -}}
+		{{- /* Page-bundle directory. Processable images get generated thumbnails and
+		       known sizes; SVGs, or every image when imageProcessing is off, are served as-is. */ -}}
+		{{- $processing := ne (printf "%v" site.Params.imageProcessing) "false" }}
+		{{- range . }}
+			{{- $caption := .Name | path.Base | replaceRE "\\..*" "" | humanize }}
+			{{- $thumb := . }}
+			{{- $size := "" }}
+			{{- if and $processing (ne .MediaType.SubType "svg") }}
+				{{- $thumb = .Fill "600x600" }}
+				{{- $size = printf ` data-pswp-width="%d" data-pswp-height="%d"` .Width .Height }}
+			{{- end }}
+			<div class="box">
+			  <figure itemprop="associatedMedia" itemscope itemtype="https://schema.org/ImageObject">
+			    <div class="img" style="background-image: url('{{ $thumb.RelPermalink }}');" >
+			      <img itemprop="thumbnail" src="{{ $thumb.RelPermalink }}" alt="{{ $caption }}" loading="lazy" /><!-- <img> hidden if in .gallery -->
+			    </div>
+		      <figcaption>
+	          <p>{{ $caption }}</p>
+		      </figcaption>
+			    <a href="{{ .RelPermalink }}" itemprop="contentUrl"{{ $size | safeHTMLAttr }}></a><!-- put <a> last so it is stacked on top -->
+			  </figure>
+			</div>
+		{{- end }}
+	{{- else with $dir -}}
+		{{- $files := readDir (print "/static/" .) }}
+		{{- range $files -}}
+			{{- $thumbext := $.Get "thumb" | default "-thumb" }}
+			{{- $isthumb := .Name | findRE ($thumbext | printf "%s\\.") }}
+			{{- $isimg := lower .Name | findRE "\\.(gif|jpg|jpeg|tiff|png|bmp)" }}
+			{{- if and $isimg (not $isthumb) }}
+				{{- $caption :=  .Name | replaceRE "\\..*" "" | humanize }}
+				{{- $linkURL := relURL (strings.TrimPrefix "/" (print ($.Get "dir") "/" .Name)) }}
+				{{- $thumb := .Name | replaceRE "(\\.)" ($thumbext | printf "%s.") }}
+				{{- $thumbexists := where $files "Name" $thumb }}
+				{{- $thumbURL := relURL (strings.TrimPrefix "/" (print ($.Get "dir") "/" $thumb)) }}
+				{{- $img := imageConfig (print "/static/" $dir "/" .Name) }}
+				<div class="box">
+				  <figure itemprop="associatedMedia" itemscope itemtype="https://schema.org/ImageObject">
+				    <div class="img" style="background-image: url('{{ if $thumbexists }}{{ $thumbURL }}{{ else }}{{ $linkURL }}{{ end }}');" >
+				      <img itemprop="thumbnail" src="{{ if $thumbexists }}{{ $thumbURL }}{{ else }}{{ $linkURL }}{{ end }}" alt="{{ $caption }}" /><!-- <img> hidden if in .gallery -->
+				    </div>
+			      <figcaption>
+		          <p>{{ $caption }}</p>
+			      </figcaption>
+				    <a href="{{ $linkURL }}" itemprop="contentUrl" data-pswp-width="{{ $img.Width }}" data-pswp-height="{{ $img.Height }}"></a><!-- put <a> last so it is stacked on top -->
+				  </figure>
+				</div>
+			{{- end }}
+		{{- end }}
+	{{- else -}}
+		<!-- If no directory was specified, include any figure shortcodes called within the gallery -->
+	  {{ .Inner }}
+	{{- end }}
+</div>

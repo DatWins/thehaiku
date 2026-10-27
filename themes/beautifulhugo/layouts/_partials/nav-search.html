@@ -1,0 +1,35 @@
+{{- /*
+  Renders the navbar search overlay. It depends only on the site search
+  configuration and the language, so nav.html calls it through
+  partialCached.
+
+  Takes: the page context (.).
+*/ -}}
+{{- $searchProvider := partial "search-provider.html" . -}}
+{{- $search := site.Params.search | default (dict) -}}
+{{ if ne $searchProvider "none" }}
+<div id="navbar-search-overlay" class="navbar-search-overlay" aria-hidden="true" role="search">
+  <div class="navbar-search-inner container-fluid">
+    <span class="fas fa-magnifying-glass navbar-search-icon" aria-hidden="true"></span>
+    <input type="search" id="navbar-search-input" class="navbar-search-input"
+           placeholder="{{ $search.placeholder | default (i18n "searchPlaceholder" | default "Search posts and pages..." ) }}"
+           aria-label="{{ i18n "searchToggleLabel" | default "Search" }}"
+           autocomplete="off">
+    <button id="navbar-search-close" class="theme-toggle" aria-label="{{ i18n "searchCloseLabel" | default "Close search" }}">
+      <span class="fas fa-xmark"></span>
+    </button>
+  </div>
+  <div id="navbar-search-results" class="navbar-search-results container-fluid" aria-live="polite"></div>
+</div>
+<script>
+  window.searchProviderConfig = {
+    provider: "{{ $searchProvider }}",
+    searchIndexURL: {{ "index.json" | relLangURL }},
+    searchPageURL: {{ "search" | relLangURL }}
+  };
+  window.searchConfig = {
+    noResultsText: "{{ $search.no_results_text | default (i18n "searchNoResultsText" | default "No results found for " ) }}",
+    untitledText: "{{ $search.untitled_text | default (i18n "searchUntitledText" | default "Untitled" ) }}"
+  };
+</script>
+{{ end -}}

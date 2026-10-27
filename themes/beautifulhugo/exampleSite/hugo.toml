@@ -1,0 +1,270 @@
+# This gets overridden when building for production
+baseurl = "http://localhost:1313/"
+DefaultContentLanguage = "en"
+title = "Beautiful Hugo"
+enableGitInfo = true
+
+[[module.imports]]
+   path = "github.com/halogenica/beautifulhugo/v5"
+
+[pagination]
+  pagerSize = 5
+
+# With enableGitInfo, ":git" makes .Lastmod the commit date of the file.
+# Hugo does not merge [frontmatter] from a theme, so it must stay here.
+[frontmatter]
+  lastmod = [":git", "lastmod", "date"]
+
+[Services]
+  [Services.Disqus]
+    # Shortname = "XXX"
+  [Services.googleAnalytics]
+    # id = "XXX"
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+
+# Ranking configuration for showRelatedPosts (Hugo's related-content engine)
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = false
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "keywords"
+    weight = 80
+  [[related.indices]]
+    name = "date"
+    weight = 10
+
+# With Params.selfHosted = true the theme fetches Bootstrap, KaTeX, PhotoSwipe,
+# Highlight.js and Fuse.js at build time (resources.GetRemote) and serves them
+# from the site. Hugo keeps the downloads in the getresource file cache, so
+# only the first build needs network access. The CDN URLs are pinned and
+# immutable, so revalidation stays off; enable [HTTPCache] to honour the
+# Cache-Control headers instead. Hugo does not merge these sections from a
+# theme, so they belong in the site configuration.
+# [caches.getresource]
+#   dir = ":cacheDir/:project"
+#   maxAge = -1
+# [HTTPCache]
+#   [HTTPCache.cache.for]
+#     includes = ["**"]
+
+[Params]
+  subtitle = "Build a beautiful and simple website in minutes"
+  mainSections = ["post", "recipe"]
+  logo = "/img/avatar-icon.png" # Expecting square dimensions
+  favicon = "/img/favicon.ico"
+  # share_img = "/img/share.jpg" # Default social image, used instead of logo
+  # mobileMenuPosition = "left" # Side of the hamburger menu on narrow screens ("right" by default)
+  dateFormat = ":date_long"
+  commit = false
+  rss = true
+  readingTime = true
+  wordCount = true
+  colorScheme = "auto"
+  # mathEngine = "katex"  # "katex" (default), "mathjax" (always CDN, even with selfHosted), or "none"
+  mathRender = "server"  # render KaTeX at build time; "client" (default) renders in the browser
+  socialShare = true
+  delayDisqus = true
+  showRelatedPosts = true
+  disableFigureOverride = true
+  headerImgStyle = "narrow"
+  showSource = true
+  sourceRepo = "https://github.com/halogenica/beautifulhugo/blob/master/exampleSite/"
+
+  [Params.search]
+    provider = "fuse"
+
+[[Params.bigimg]]
+  src = "/img/triangle.jpg"
+  desc = "Triangle"
+[[Params.bigimg]]
+  src = "/img/sphere.jpg"
+  desc = "Sphere"
+  position = "center top"
+[[Params.bigimg]]
+  src = "/img/hexagon.jpg"
+  desc = "Hexagon"
+
+# For AI search summary limits, see [Params.seo] in the SEO & i18n docs.
+
+[Params.author]
+  name = "Some Person"
+  website = "yourwebsite.com"
+  email = "youremail@domain.com"
+  github = "halogenica/beautifulhugo"
+  twitter = "username"
+  linkedin = "in/username" # company/username
+
+# Any platform the built-in registry does not cover. "icon" is a CSS class,
+# so a site can also load its own icon font from head_custom.html.
+[[Params.author.custom]]
+  href = "https://matrix.to/#/@username:example.org"
+  title = "Matrix"
+  icon = "fas fa-comments"
+
+[markup.highlight]
+  noClasses = false
+
+[markup.goldmark.parser]
+  wrapStandAloneImageWithinParagraph = false # lets Markdown attributes reach the image render hook
+
+[markup.goldmark.parser.attribute]
+  block = true
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+# Extra inline markup: ==mark==, ~~delete~~, ^sup^, ~sub~, ++insert++
+# GFM strikethrough also matches a single tilde, so it must go off for ~sub~.
+[markup.goldmark.extensions]
+  strikethrough = false
+
+[markup.goldmark.extensions.extras.delete]
+  enable = true
+[markup.goldmark.extensions.extras.insert]
+  enable = true
+[markup.goldmark.extensions.extras.mark]
+  enable = true
+[markup.goldmark.extensions.extras.subscript]
+  enable = true
+# Safe with math because the passthrough extension below keeps LaTeX ^ away
+# from Goldmark.
+[markup.goldmark.extensions.extras.superscript]
+  enable = true
+
+# Headings collected for the table-of-contents panel
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 4
+  ordered = false
+
+# Keeps LaTeX out of Goldmark, so the browser gets the delimiters unchanged.
+# Hugo does not merge [markup] from a theme, so this must stay in the site
+# configuration. The delimiters are the KaTeX auto-render defaults; single $
+# is not an inline delimiter, because prose often contains a stray $.
+[markup.goldmark.extensions.passthrough]
+  enable = true
+  [markup.goldmark.extensions.passthrough.delimiters]
+    block = [['\[', '\]'], ['$$', '$$']]
+    inline = [['\(', '\)']]
+
+[[menu.main]]
+    identifier = "setup"
+    name = "Setup"
+    weight = 1
+
+[[menu.main]]
+    parent = "setup"
+    name = "Configuration"
+    url = "page/configuration/"
+    weight = 1
+
+[[menu.main]]
+    parent = "setup"
+    name = "Pages & Layouts"
+    url = "page/pages-and-layouts/"
+    weight = 2
+
+[[menu.main]]
+    parent = "setup"
+    name = "Theming"
+    url = "page/theming/"
+    weight = 3
+
+[[menu.main]]
+    parent = "setup"
+    name = "SEO & i18n"
+    url = "page/seo-and-i18n/"
+    weight = 4
+
+[[menu.main]]
+    parent = "setup"
+    name = "Comments & Social"
+    url = "page/comments-and-social/"
+    weight = 5
+
+[[menu.main]]
+    identifier = "features"
+    name = "Features"
+    weight = 2
+
+[[menu.main]]
+    parent = "features"
+    name = "Shortcodes"
+    url = "page/shortcodes/"
+    weight = 1
+
+[[menu.main]]
+    parent = "features"
+    name = "Code Blocks"
+    url = "page/code-blocks/"
+    weight = 2
+
+[[menu.main]]
+    parent = "features"
+    name = "Markdown Extensions"
+    url = "page/markdown-extensions/"
+    weight = 3
+
+[[menu.main]]
+    parent = "features"
+    name = "Figures & Galleries"
+    url = "page/figures-and-galleries/"
+    weight = 4
+
+[[menu.main]]
+    parent = "features"
+    name = "Math & Diagrams"
+    url = "page/math-and-diagrams/"
+    weight = 5
+
+[[menu.main]]
+    parent = "features"
+    name = "Publications"
+    url = "publication/"
+    weight = 6
+
+[[menu.main]]
+    identifier = "blog"
+    name = "Blog"
+    weight = 3
+
+[[menu.main]]
+    parent = "blog"
+    name = "Posts"
+    url = "post/"
+    weight = 1
+
+[[menu.main]]
+    parent = "blog"
+    name = "Tags"
+    url = "tags/"
+    weight = 2
+
+[[menu.main]]
+    parent = "blog"
+    name = "Categories"
+    url = "categories/"
+    weight = 3
+
+[[menu.main]]
+    parent = "blog"
+    name = "Archives"
+    url = "archives/"
+    weight = 4
+
+[[menu.main]]
+    name = "About"
+    url = "page/about/"
+    weight = 4
+
+[outputs]
+home = ["HTML", "RSS", "JSON"]
+section = ["HTML", "RSS"]
+page = ["HTML"]

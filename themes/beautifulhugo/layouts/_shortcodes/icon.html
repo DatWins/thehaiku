@@ -1,0 +1,11 @@
+{{- /*
+  Renders a Font Awesome icon inline. The class list comes from the first
+  positional argument or the `class` named argument. An `aria-label` makes
+  the icon meaningful to assistive technology; without one it is hidden.
+*/ -}}
+{{- $class := .Get "class" | default (.Get 0) -}}
+{{- if not $class -}}
+  {{- errorf "icon shortcode: a class is required, e.g. {{< icon \"fas fa-file-pdf\" >}} (%s)" .Position -}}
+{{- end -}}
+{{- $label := .Get "label" -}}
+<i class="{{ $class }}"{{ with .Get "style" }} style="{{ . | safeCSS }}"{{ end }}{{ if $label }} role="img" aria-label="{{ $label }}"{{ else }} aria-hidden="true"{{ end }}></i>

@@ -1,0 +1,35 @@
+{{- /* Emit a <link> or <script> for a third-party asset listed in
+       data/beautifulhugo/vendor.toml. Pass the entry name as a string, or a
+       dict with "name" and optional "defer", "id", "media", "onload".
+
+       By default the tag points at the CDN with its SRI hash. With
+       Params.selfHosted the file is fetched once at build time through
+       resources.GetRemote, checked against the same hash, fingerprinted, and
+       served from the site. Fetched files persist in the getresource cache
+       ([caches.getresource]); see [HTTPCache] for revalidation. */ -}}
+{{- $args := cond (reflect.IsMap .) . (dict "name" .) }}
+{{- $entry := index (partial "func/data.html" (dict "Site" site)).beautifulhugo.vendor $args.name }}
+{{- if not $entry }}{{ errorf "vendor partial: %q is not in data/beautifulhugo/vendor.toml" $args.name }}{{ end }}
+{{- $href := $entry.url }}
+{{- $integrity := $entry.integrity }}
+{{- if site.Params.selfHosted }}
+  {{- with try (resources.GetRemote $entry.url) }}
+    {{- with .Err }}{{ errorf "vendor partial: cannot fetch %s: %s" $entry.url . }}{{ end }}
+    {{- with .Value }}
+      {{- $r := . | resources.Copy (path.Join "vendor" (path.Base $entry.url)) | fingerprint "sha384" }}
+      {{- if ne $r.Data.Integrity $entry.integrity }}
+        {{- errorf "vendor partial: %s does not match its SRI hash (got %s)" $entry.url $r.Data.Integrity }}
+      {{- end }}
+      {{- $href = $r.RelPermalink }}
+    {{- else }}{{ errorf "vendor partial: cannot fetch %s" $entry.url }}{{ end }}
+  {{- end }}
+{{- end }}
+{{- $attrs := "" }}
+{{- with $args.id }}{{ $attrs = printf `%s id="%s"` $attrs . }}{{ end }}
+{{- with $args.media }}{{ $attrs = printf `%s media="%s"` $attrs . }}{{ end }}
+{{- if eq (path.Ext $entry.url) ".css" }}
+<link rel="stylesheet"{{ $attrs | safeHTMLAttr }} href="{{ $href }}" integrity="{{ $integrity }}" crossorigin="anonymous">
+{{- else }}
+{{- with $args.onload }}{{ $attrs = printf `%s onload="%s"` $attrs . }}{{ end }}
+<script{{ if $args.defer }} defer{{ end }}{{ $attrs | safeHTMLAttr }} src="{{ $href }}" integrity="{{ $integrity }}" crossorigin="anonymous"></script>
+{{- end -}}

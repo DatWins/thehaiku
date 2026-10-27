@@ -1,0 +1,83 @@
+{{ $math := partial "func/load-math.html" . }}
+{{- $mathEngine := cond $math.script $math.engine "none" }}
+{{- if eq $mathEngine "katex" }}
+{{ partial "vendor.html" (dict "name" "katex-js" "defer" true) }}
+{{ partial "vendor.html" (dict "name" "katex-auto-render" "defer" true "onload" "renderMathInElement(document.body);") }}
+{{- else if eq $mathEngine "mathjax" }}
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.min.js" crossorigin="anonymous"></script>
+{{- end }}
+{{ partial "vendor.html" "bootstrap-js" }}
+
+{{- if $.Param "useHLJS" }}
+{{ partial "vendor.html" "hljs-js" }}
+<script> hljs.highlightAll(); </script>
+<script> document.querySelectorAll('pre.chroma').forEach(function (pre) { pre.style.padding = '0'; }); </script>
+{{- end -}}
+
+{{ partial "vendor.html" "photoswipe-js" }}
+{{ partial "vendor.html" "photoswipe-lightbox-js" }}
+
+{{ if eq (partial "search-provider.html" .) "fuse" }}
+{{ partial "vendor.html" "fuse-js" }}
+{{ end }}
+
+{{- /* Theme JS is one bundle, loaded after every library it uses. */ -}}
+{{- $js := slice "js/main.js" }}
+{{- if ne ($.Param "toc") false }}{{ $js = $js | append "js/toc.js" }}{{ end }}
+{{- if .Site.Params.staticman }}{{ $js = $js | append "js/staticman.js" }}{{ end }}
+{{- $js = $js | append "js/load-photoswipe.js" }}
+{{- if eq (partial "search-provider.html" .) "fuse" }}{{ $js = $js | append "js/search-fuse.js" }}{{ end }}
+{{ partial "js.html" (dict "paths" $js) }}
+
+{{ if .Site.Params.gcse }}
+<script>
+  (function() {
+    var cx = '{{ .Site.Params.gcse }}';
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
+  })();
+</script>
+{{ end }}
+
+{{ if .Site.Params.piwik }}
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(["trackPageView"]);
+  _paq.push(["enableLinkTracking"]);
+
+  (function() {
+    var u=(("https:" == document.location.protocol) ? "https" : "http") + "://{{ .Site.Params.piwik.server }}/";
+    _paq.push(["setTrackerUrl", u+"piwik.php"]);
+    _paq.push(["setSiteId", "{{ .Site.Params.piwik.id }}"]);
+    var d=document, g=d.createElement("script"), s=d.getElementsByTagName("script")[0]; g.type="text/javascript";
+    g.defer=true; g.async=true; g.src=u+"piwik.js"; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript>
+<img src="https://{{ .Site.Params.piwik.server }}/piwik.php?idsite={{ .Site.Params.piwik.id }}&amp;rec=1" style="border:0" alt="" />
+</noscript>
+{{ end }}
+
+
+{{ if and .Site.Params.delayDisqus .Site.Config.Services.Disqus.Shortname }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var button = document.getElementById('show-comments');
+  if (!button) return;
+  button.addEventListener('click', function () {
+    var disqus = document.createElement('script');
+    disqus.async = true;
+    disqus.src = '//{{ .Site.Config.Services.Disqus.Shortname }}.disqus.com/embed.js';
+    (document.head || document.body).appendChild(disqus);
+    button.style.display = 'none';
+  });
+});
+</script>
+<script id="dsq-count-scr" src="//{{ .Site.Config.Services.Disqus.Shortname }}.disqus.com/count.js" async></script>
+{{ end }}
+
+{{ partial "scripts_custom.html" . }}

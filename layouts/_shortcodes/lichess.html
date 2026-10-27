@@ -1,0 +1,30 @@
+{{- /*
+  Lichess board: paste a Lichess study chapter link or game link.
+    {{< lichess "https://lichess.org/study/AbCdEfGh/IjKlMnOp" >}}
+    {{< lichess "https://lichess.org/abcdEFGH" >}}
+  Optional caption:
+    {{< lichess url="https://lichess.org/study/AbCdEfGh/IjKlMnOp" caption="Lucena position" >}}
+*/ -}}
+{{- $url := .Get "url" | default (.Get 0) | strings.TrimSpace -}}
+{{- $caption := .Get "caption" -}}
+{{- if not $url }}{{ errorf "lichess shortcode: no link given at %s" .Position }}{{ end -}}
+{{- $hash := "" -}}
+{{- with findRESubmatch `#(\d+)$` $url 1 }}{{ $hash = printf "#%s" (index (index . 0) 1) }}{{ end -}}
+{{- $clean := replaceRE `[?#].*$` "" $url -}}
+{{- $clean = replaceRE `^https?://(www\.)?lichess\.org/` "" $clean -}}
+{{- $clean = strings.TrimSuffix "/" $clean -}}
+{{- $embed := "" -}}
+{{- if hasPrefix $clean "study/" -}}
+  {{- $parts := split (strings.TrimPrefix "study/" (replace $clean "study/embed/" "study/")) "/" -}}
+  {{- $embed = printf "https://lichess.org/study/embed/%s" (delimit (first 2 $parts) "/") -}}
+{{- else -}}
+  {{- $id := index (split (replace $clean "embed/game/" "") "/") 0 -}}
+  {{- $id = substr $id 0 8 -}}
+  {{- $embed = printf "https://lichess.org/embed/game/%s" $id -}}
+{{- end -}}
+<figure class="lichess-embed">
+  <div class="lichess-frame">
+    <iframe src="{{ printf "%s?theme=auto&bg=auto%s" $embed $hash | safeURL }}" title="{{ $caption | default "Lichess board" }}" loading="lazy" allowfullscreen></iframe>
+  </div>
+  <figcaption>{{ with $caption }}{{ . }} · {{ end }}<a href="{{ $url }}" target="_blank" rel="noopener">Open on Lichess</a></figcaption>
+</figure>

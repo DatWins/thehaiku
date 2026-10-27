@@ -1,0 +1,23 @@
+{{- /*
+  Resolves a media path to a URL the browser can load.
+
+  Page resources and files under assets/ are published and their permalink
+  is returned. Paths that start with "/" are taken as static/ paths, remote
+  URLs pass through, and anything else is relative to the page.
+
+  Takes: dict with "Page" and "Src".
+  Returns: a relative URL string.
+*/ -}}
+{{- $src := .Src -}}
+{{- $url := $src -}}
+{{- if or (strings.HasPrefix $src "http") (strings.HasPrefix $src "//") -}}
+{{- else if .Page.Resources.GetMatch $src -}}
+  {{- $url = (.Page.Resources.GetMatch $src).RelPermalink -}}
+{{- else if resources.Get (strings.TrimPrefix "/" $src) -}}
+  {{- $url = (resources.Get (strings.TrimPrefix "/" $src)).RelPermalink -}}
+{{- else if strings.HasPrefix $src "/" -}}
+  {{- $url = strings.TrimPrefix "/" $src | relURL -}}
+{{- else -}}
+  {{- $url = print .Page.RelPermalink $src -}}
+{{- end -}}
+{{- return $url -}}

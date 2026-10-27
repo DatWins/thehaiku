@@ -1,0 +1,23 @@
+{{- /*
+  Computes the availability state for the TOC / posts side panel, shared
+  by the navbar toggle button (nav.html) and the panel itself (toc.html).
+
+  - `isListPage`: the node is a section or the home page, so the panel
+    shows a posts list rather than a table of contents.
+  - `hasToc`: the rendered TableOfContents contains at least one item.
+  - `listPages`: every non-hidden page the node lists (all pages, not only
+    the current pager's), from `func/list-pages`. Empty otherwise.
+  - `hasListPages`: whether `listPages` is non-empty.
+
+  Takes: the page context (.).
+  Returns: dict with "isListPage", "hasToc", "hasListPages", "listPages".
+*/ -}}
+{{- $isListPage := or .IsSection .IsHome -}}
+{{- $hasToc := and .TableOfContents (findRE `<li>` .TableOfContents) -}}
+{{- $hasListPages := false -}}
+{{- $listPages := slice -}}
+{{- if $isListPage -}}
+  {{- $listPages = partial "func/list-pages.html" . -}}
+  {{- $hasListPages = gt (len $listPages) 0 -}}
+{{- end -}}
+{{- return (dict "isListPage" $isListPage "hasToc" $hasToc "hasListPages" $hasListPages "listPages" $listPages) -}}

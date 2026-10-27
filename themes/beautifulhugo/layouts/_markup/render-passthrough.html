@@ -1,0 +1,23 @@
+{{- /* Handles math kept by the Goldmark passthrough extension.
+       With mathRender = "server" and the KaTeX engine, the math is rendered
+       at build time with transform.ToMath, so the page needs only the KaTeX
+       CSS. Otherwise the math passes through unchanged for KaTeX or MathJax
+       in the browser: block math as $$...$$ and inline math as \(...\), the
+       delimiters both engines are configured for. */ -}}
+{{- $block := eq .Type "block" -}}
+{{- /* The probe in func/has-passthrough.html must not mark a page as having math. */ -}}
+{{- if and (.Page.Store.Get "mathProbe") (eq .Inner "bhMathProbe") -}}
+  {{- printf `\(%s\)` .Inner | safeHTML -}}
+{{- else -}}
+  {{- .Page.Store.Set "hasMath" true -}}
+  {{- $server := and (eq (.Page.Param "mathRender") "server") (eq (.Page.Param "mathEngine" | default "katex") "katex") -}}
+  {{- if $server -}}
+    {{- $html := transform.ToMath .Inner (dict "displayMode" $block "throwOnError" false) -}}
+    {{- /* Hugo omits the wrapper KaTeX adds in the browser; the CSS needs it. */ -}}
+    {{- if $block }}<span class="katex-display">{{ $html }}</span>{{ else }}{{ $html }}{{ end -}}
+  {{- else if $block -}}
+    {{- printf "$$%s$$" .Inner | safeHTML -}}
+  {{- else -}}
+    {{- printf `\(%s\)` .Inner | safeHTML -}}
+  {{- end -}}
+{{- end -}}

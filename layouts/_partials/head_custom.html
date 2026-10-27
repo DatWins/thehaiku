@@ -1,0 +1,97 @@
+<style>
+  /* ── Haiku blog: minimal, airy, poem-first ── */
+
+  /* Import a quiet serif for the poems */
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+
+  /* Post body: serif, generous line-height */
+  .blog-post,
+  .blog-post p,
+  .post-preview .post-entry {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.15rem;
+    line-height: 2;
+  }
+
+  /* Poem lines: no indent, breathe */
+  .blog-post p {
+    margin-bottom: 0.25rem;
+    white-space: pre-line; /* preserve line breaks inside a paragraph */
+  }
+
+  /* The poem on the list page — center it */
+  .post-preview .post-entry {
+    text-align: center;
+    font-style: italic;
+    color: #444;
+  }
+
+  /* Post title on list page: small, understated */
+  .post-preview .post-title {
+    font-size: 0.85rem;
+    font-weight: normal;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #999;
+  }
+
+  /* Hide word count / reading time everywhere */
+  .post-meta .middot,
+  .post-meta [itemprop="wordCount"],
+  .post-meta .reading-time {
+    display: none;
+  }
+
+  /* Single post: center the poem, max width narrow */
+  .blog-post {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* Headings inside a post (form label, season note) */
+  .blog-post h2, .blog-post h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: normal;
+    font-style: italic;
+    font-size: 1rem;
+    color: #888;
+    text-align: center;
+    margin-top: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Horizontal rule as a soft divider between stanzas */
+  .blog-post hr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    width: 3rem;
+    margin: 2rem auto;
+  }
+
+  /* Tags: small and quiet */
+  .blog-post .blog-tags a,
+  .post-preview .post-meta a {
+    font-size: 0.8rem;
+    color: #aaa;
+  }
+
+  /* Nav: site title small and lowercase */
+  .navbar-custom .navbar-brand {
+    font-family: 'Lora', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Hide the avatar/logo on all screen sizes */
+  .navbar-custom .avatar-container { display: none; }
+
+  /* Page background: very light warm white */
+  body { background-color: #fdfcf8; }
+
+  @media (max-width: 575.98px) {
+    .blog-post { max-width: 100%; padding: 0 1rem; }
+    .blog-post, .blog-post p, .post-preview .post-entry { font-size: 1.05rem; }
+  }
+</style>

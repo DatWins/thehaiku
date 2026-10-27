@@ -1,0 +1,21 @@
+{{- /* Reports which math assets this page needs.
+       With the Goldmark passthrough extension the render hook flags pages that
+       contain math; without it the theme cannot tell, so it loads the assets on
+       every page, as before. Front matter "math: true" always loads them, and
+       is the only way to get the KaTeX scripts when mathRender = "server".
+
+       Returns a dict: "engine" is "katex", "mathjax" or "none", and "script"
+       is false when the math was rendered at build time. */ -}}
+{{- $engine := $.Param "mathEngine" | default "katex" -}}
+{{- $script := true -}}
+{{- if and (ne $engine "none") (partialCached "func/has-passthrough.html" .) -}}
+  {{- /* .WordCount renders the content, so the passthrough hook sets the flag
+         before the head is written. */ -}}
+  {{- $noop := .WordCount -}}
+  {{- if not (or (.Page.Store.Get "hasMath") ($.Param "math")) -}}
+    {{- $engine = "none" -}}
+  {{- else if and (eq $engine "katex") (eq ($.Param "mathRender") "server") (not ($.Param "math")) -}}
+    {{- $script = false -}}
+  {{- end -}}
+{{- end -}}
+{{- return (dict "engine" $engine "script" $script) -}}

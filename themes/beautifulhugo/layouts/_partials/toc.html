@@ -1,0 +1,26 @@
+{{- if ne ($.Param "toc") false -}}
+{{- $tocState := partial "func/toc-state.html" . -}}
+{{- $isListPage := $tocState.isListPage -}}
+{{- $hasToc := $tocState.hasToc -}}
+{{- $hasListPages := $tocState.hasListPages -}}
+{{- $listPages := $tocState.listPages -}}
+{{- if or $hasToc $hasListPages -}}
+<div class="offcanvas offcanvas-start toc-panel" id="toc-panel" tabindex="-1" aria-labelledby="toc-title" data-toc-mode="{{ if $isListPage }}posts{{ else }}headings{{ end }}">
+  <div class="offcanvas-header">
+    <span class="offcanvas-title toc-title" id="toc-title">{{ if $isListPage }}{{ i18n "tocPostsLabel" | default "Posts" }}{{ else }}{{ i18n "tocLabel" | default "Table of Contents" }}{{ end }}</span>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{ i18n "tocCloseLabel" | default "Close table of contents" }}"></button>
+  </div>
+  <nav class="offcanvas-body toc-body">
+    {{- if $isListPage -}}
+    <ul class="toc-post-list">
+      {{- range $listPages -}}
+      <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+      {{- end -}}
+    </ul>
+    {{- else -}}
+    {{ .TableOfContents }}
+    {{- end -}}
+  </nav>
+</div>
+{{- end -}}
+{{- end -}}
