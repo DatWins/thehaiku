@@ -17,6 +17,6 @@ HOW TO USE
    For tanka: five lines (5-7-5-7-7 syllables).
 -->
 
-old pond —  
+old pond  
 a frog jumps in,  
 sound of water
