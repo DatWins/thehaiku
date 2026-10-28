@@ -1,0 +1,46 @@
+/* the haiku: Fuji background + bolder type (Beautiful Hugo overrides) */
+body {
+  background: #fdfcf9 url("/img/fuji.svg") center bottom / cover no-repeat fixed;
+}
+
+/* Title: bolder serif with a Japanese subtitle */
+.intro-header h1,
+.page-heading h1,
+.site-heading h1,
+.navbar-brand {
+  font-family: "Shippori Mincho", serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em;
+  color: #1f2430 !important;
+}
+.intro-header h1::after {
+  content: "俳句";
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .6em;
+  color: #4d5b73;
+  margin-top: .4rem;
+}
+
+/* Poems: bold italic serif on a soft paper panel so they stay readable */
+.blog-post,
+.post-preview,
+article,
+.container[role="main"] .post-entry {
+  font-family: "Lora", serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: #23262e;
+}
+.post-preview,
+.blog-post {
+  background: rgba(253, 252, 249, .85);
+  backdrop-filter: blur(4px);
+  padding: 1.25rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 18px rgba(60, 70, 90, .12);
+  margin-bottom: 1.25rem;
+}
