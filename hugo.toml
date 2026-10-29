@@ -23,7 +23,7 @@ theme = "beautifulhugo"
     weight = 10
 
 [Params]
-  homeTitle = "the haiku"
+  homeTitle = "The pen is waiting\nwhere's the creativity\nshow me your ideas"
   subtitle = ""
   mainSections = ["post", "posts"]
   logo = "/img/logo.jpg"

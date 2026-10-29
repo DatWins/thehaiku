@@ -1,4 +1,4 @@
-/* the haiku: Fuji background + Playfair Display title (Beautiful Hugo overrides) */
+/* the haiku: Fuji background + Cormorant Garamond title (Beautiful Hugo overrides) */
 body {
   background: #fdfcf9 url("/img/fuji.svg") center bottom / cover no-repeat fixed;
 }
@@ -8,11 +8,16 @@ body {
 .page-heading h1,
 .site-heading h1,
 .navbar-brand {
-  font-family: "Playfair Display", Georgia, serif !important;
-  font-weight: 600 !important;
+  font-family: "Cormorant Garamond", Georgia, serif !important;
+  font-weight: 500 !important;
   font-style: italic !important;
-  letter-spacing: .05em;
+  letter-spacing: .03em;
   color: #1f2430 !important;
+}
+.intro-header h1 {
+  white-space: pre-line;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  line-height: 1.2;
 }
 .intro-header h1::after {
   content: "俳句";
@@ -46,4 +51,14 @@ article,
   border-radius: 12px;
   box-shadow: 0 2px 18px rgba(60, 70, 90, .12);
   margin-bottom: 1.25rem;
+}
+
+/* The theme prints the three-line home title in the menu bar too.
+   Show the short site name there instead. */
+.navbar-custom .navbar-brand {
+  font-size: 0 !important;
+}
+.navbar-custom .navbar-brand::before {
+  content: "the haiku";
+  font-size: 1.15rem;
 }
