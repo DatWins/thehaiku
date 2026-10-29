@@ -1,4 +1,4 @@
-/* the haiku: Fuji background + bolder type (Beautiful Hugo overrides) */
+/* the haiku: Fuji background + Playfair Display title (Beautiful Hugo overrides) */
 body {
   background: #fdfcf9 url("/img/fuji.svg") center bottom / cover no-repeat fixed;
 }
@@ -8,14 +8,17 @@ body {
 .page-heading h1,
 .site-heading h1,
 .navbar-brand {
-  font-family: "Shippori Mincho", serif !important;
-  font-weight: 800 !important;
-  letter-spacing: .08em;
+  font-family: "Playfair Display", Georgia, serif !important;
+  font-weight: 600 !important;
+  font-style: italic !important;
+  letter-spacing: .05em;
   color: #1f2430 !important;
 }
 .intro-header h1::after {
   content: "俳句";
   display: block;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-style: normal;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: .6em;
