@@ -10,9 +10,9 @@ body {
 body::before {
   content: "";
   position: fixed;
-  left: 0;
-  top: 96px;
-  width: min(20vw, 260px);
+  left: 6vw;
+  top: 120px;
+  width: min(18vw, 240px);
   height: min(40vh, 360px);
   background: url("../birds/chickadee-perched.webp") left top / contain no-repeat;
   mix-blend-mode: multiply;
