@@ -11,10 +11,10 @@ body::before {
   content: "";
   position: fixed;
   left: 0;
-  bottom: 0;
+  top: 88px;
   width: min(34vw, 420px);
   height: min(60vh, 560px);
-  background: url("../birds/chickadee-perched.webp") left bottom / contain no-repeat;
+  background: url("../birds/chickadee-perched.webp") left top / contain no-repeat;
   mix-blend-mode: multiply;
   opacity: .9;
   pointer-events: none;
@@ -37,7 +37,7 @@ body::before {
 }
 .intro-header h1 {
   white-space: pre-line;
-  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-size: clamp(1.4rem, 3.6vw, 2.2rem);
   line-height: 1.2;
 }
 .intro-header h1::after {
@@ -81,5 +81,6 @@ article,
 }
 .navbar-custom .navbar-brand::before {
   content: "the haiku";
-  font-size: 1.15rem;
+  font-size: 1.7rem;
+  font-weight: 700;
 }
