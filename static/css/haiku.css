@@ -7,22 +7,7 @@ body {
   background: #efe9dc url("../textures/linen.webp") center top / 1100px auto repeat !important;
   position: relative;
 }
-body::before {
-  content: "";
-  position: fixed;
-  left: 6vw;
-  top: 120px;
-  width: min(18vw, 240px);
-  height: min(40vh, 360px);
-  background: url("../birds/chickadee-perched.webp") left top / contain no-repeat;
-  mix-blend-mode: multiply;
-  opacity: .9;
-  pointer-events: none;
-  z-index: 0;
-}
-@media (max-width: 900px) {
-  body::before { display: none; }
-}
+
 
 /* Title: bolder serif with a Japanese subtitle */
 .intro-header h1,
@@ -107,4 +92,22 @@ footer .row {
   font-size: 1rem !important;
   color: #3a3a3a !important;
   letter-spacing: 0.04em;
+}
+
+/* Chickadee beside the line "where's the creativity" in the title.
+   Positioned inside the title box, so it moves with the text on every screen. */
+.intro-header h1 {
+  position: relative;
+}
+.intro-header h1::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  top: 42%;
+  width: 18%;
+  height: 90%;
+  background: url("../birds/chickadee-perched.webp") left center / contain no-repeat;
+  mix-blend-mode: multiply;
+  opacity: .9;
+  pointer-events: none;
 }
