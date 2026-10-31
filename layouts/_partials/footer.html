@@ -1,0 +1,24 @@
+{{ if eq .Type "page" }}
+  {{ partial "page_meta.html" . }}
+{{ end }}
+<footer>
+  <div class="container">
+    {{ if .Site.Params.disclaimerText }}
+    <div class="row">
+      <div class="disclaimer">
+        <b>Disclaimer:</b> {{ .Site.Params.disclaimerText }}
+      </div>
+    </div>
+    {{ end }}
+    <div class="row">
+      <div class="col-md-10 offset-md-1">
+        {{ partialCached "footer-social.html" . .Language.Lang }}
+        <!-- Please don't remove this, keep my open source work credited :) -->
+        <p class="credits theme-by text-muted">
+          {{ i18n "poweredBy" (dict "Version" hugo.Version) | safeHTML }}
+          {{ if and $.GitInfo .Site.Params.commit }}&nbsp;&bull;&nbsp;[<a href="{{ .Site.Params.commit }}{{ .GitInfo.Hash }}">{{ substr .GitInfo.Hash 0 8 }}</a>]{{ end }}
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
