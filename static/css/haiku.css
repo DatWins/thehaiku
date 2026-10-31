@@ -1,7 +1,10 @@
 /* the haiku: Fuji background + Cormorant Garamond title (Beautiful Hugo overrides) */
 /* Linen paper from the Chickadee site, with a perched chickadee on the left */
+html {
+  background: #efe9dc url("/textures/linen.webp") center top / 1100px auto repeat !important;
+}
 body {
-  background: #efe9dc url("/textures/linen.webp") center top / 1100px auto repeat;
+  background: #efe9dc url("/textures/linen.webp") center top / 1100px auto repeat !important;
   position: relative;
 }
 body::before {
