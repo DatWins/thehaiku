@@ -1,0 +1,6 @@
+{{- /* Show the post's flower drawing (front matter `image:`) above the poem. */ -}}
+{{- with .Params.image }}
+<div class="poem-flower">
+  <img src="{{ strings.TrimPrefix "/" . | relURL }}" alt="" loading="lazy">
+</div>
+{{- end }}

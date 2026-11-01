@@ -133,3 +133,31 @@ footer .row {
     height: 200px !important;
   }
 }
+
+/* Flower drawing above the poem on a post's own page */
+.blog-post .poem-flower {
+  text-align: center;
+  margin: 0 auto 1.25rem;
+}
+.blog-post .poem-flower img {
+  max-height: 300px;
+  max-width: 70%;
+  width: auto;
+  mix-blend-mode: multiply;
+}
+
+/* Watercolour flower frame around the home-page title (tikz-flora wreath).
+   A wide frame on larger screens, a tall one on phones. */
+.intro-header .page-heading {
+  background: url("../flora/header-frame-wide.webp") center / 100% 100% no-repeat;
+  padding: 4.5rem 9% 4rem;
+}
+@media (max-width: 767px) {
+  .intro-header .page-heading {
+    background-image: url("../flora/header-frame-tall.webp");
+    padding: 4.5rem 19% 4rem;
+  }
+  .intro-header .page-heading h1 {
+    font-size: 1.55rem !important;
+  }
+}
