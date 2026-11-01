@@ -94,22 +94,30 @@ footer .row {
   letter-spacing: 0.04em;
 }
 
-/* Chickadee beside the line "where's the creativity" in the title.
-   Positioned inside the title box, so it moves with the text on every screen. */
-.intro-header h1 {
+/* Chickadee landing on the red flower at the top-left of the header frame.
+   Positioned in the framed box, so it stays on the flower at every size. */
+.intro-header .page-heading {
   position: relative;
 }
-.intro-header h1::before {
+.intro-header .page-heading::before {
   content: "";
   position: absolute;
-  left: 10%;
-  top: 42%;
-  width: 18%;
-  height: 90%;
-  background: url("../birds/chickadee-perched.webp") left center / contain no-repeat;
+  width: 160px;
+  height: 160px;
+  left: calc(5.4% - 82px);
+  top: calc(26% - 112px);
+  background: url("../birds/chickadee-landing.webp") center / contain no-repeat;
   mix-blend-mode: multiply;
-  opacity: .9;
   pointer-events: none;
+  z-index: 2;
+}
+@media (max-width: 767px) {
+  .intro-header .page-heading::before {
+    width: 96px;
+    height: 96px;
+    left: calc(10.6% - 50px);
+    top: calc(16% - 66px);
+  }
 }
 
 /* Flower picture for each poem (front matter `image:`), in full colour */
