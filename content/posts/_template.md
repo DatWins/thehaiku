@@ -5,6 +5,8 @@ draft: true
 tags:
   - haiku
 categories: ["autumn"]
+# flower picture: flora-spring / flora-summer / flora-autumn / flora-autumn2 / flora-autumn3 / flora-winter
+image: "/flora/flora-autumn.webp"
 ---
 <!--
 HOW TO USE

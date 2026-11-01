@@ -111,3 +111,25 @@ footer .row {
   opacity: .9;
   pointer-events: none;
 }
+
+/* Flower picture for each poem (front matter `image:`), in full colour */
+.post-preview .post-image,
+.post-preview .post-image:hover {
+  filter: none !important;
+  width: 170px !important;
+  height: 250px !important;
+}
+.post-preview .post-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  border-radius: 0 !important;
+  mix-blend-mode: multiply;
+}
+@media (max-width: 767px) {
+  .post-preview .post-image,
+  .post-preview .post-image:hover {
+    width: 100% !important;
+    height: 200px !important;
+  }
+}
