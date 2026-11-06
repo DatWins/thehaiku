@@ -3,7 +3,7 @@
 <nav class="navbar navbar-expand-md navbar-light navbar-custom fixed-top{{ if $togglerLeft }} navbar-toggler-left{{ end }}">
   <div class="container-fluid">
     {{ if $togglerLeft }}{{ partial "nav-toggler.html" . }}{{ end }}
-    <a class="navbar-brand" href="{{ "" | relLangURL }}"><img src="{{ "birds/coolbird.webp" | relURL }}" alt="" class="navbar-bird" aria-hidden="true">{{ .Site.Params.homeTitle | default .Site.Title }}</a>
+    <a class="navbar-brand" href="{{ "" | relLangURL }}">{{ .Site.Params.homeTitle | default .Site.Title }}</a>
     <div class="d-flex align-items-center">
       {{ if ne ($.Param "toc") false }}
       {{ $tocState := partial "func/toc-state.html" . }}

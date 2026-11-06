@@ -63,22 +63,11 @@ article,
    Show the short site name there instead. */
 .navbar-custom .navbar-brand {
   font-size: 0 !important;
-  display: inline-flex !important;
-  align-items: center;
-  gap: 8px;
 }
 .navbar-custom .navbar-brand::before {
   content: "the haiku";
   font-size: 1.7rem;
   font-weight: 700;
-}
-/* Cool bird next to "the haiku" */
-.navbar-brand .navbar-bird {
-  display: inline-block !important;
-  height: 22px;
-  width: auto;
-  font-size: initial;
-  order: -1;
 }
 
 /* Post dates: bolder */
