@@ -57,6 +57,7 @@ Current posts:
 
 | Post | Picture | Bird |
 |---|---|---|
+| 2026-10-31 "halloween night" | `static/flora/2026-10-31.webp` | 3-perched, top-right, facing the green flower; seed 5587 |
 | 2026-10-26 "empty notebook" | `static/flora/2026-10-26-first.webp` | 1-flight, flipped, hovering at the red flower |
 | 2026-10-25 "morning commute" | `static/flora/2026-10-25.webp` | 5-sing-open, flipped, on its twig by the green flower |
 | 2026-10-20 "rain on the window" | `static/flora/2026-10-20.webp` | 8-flyaway, leaving the top of the spray |
@@ -131,6 +132,10 @@ flower (its `left`/`top` in `haiku.css`).
   and reuse these birds. The owner is also looking for public-domain art
   (e.g. Hokusai prints on Wikimedia Commons) and has Pixabay photos in mind,
   but photos don't match the drawn style.
+
+## Line breaks in poems
+
+`hugo.toml` has `hardWraps = true` under `[markup.goldmark.renderer]`. This means every newline in the Markdown source becomes a `<br>` in HTML — you do **not** need to add two trailing spaces at the end of each line. Write the poem naturally, one line per line.
 
 ## Known small things
 

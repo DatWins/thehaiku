@@ -65,3 +65,4 @@ theme = "beautifulhugo"
 
 [markup.goldmark.renderer]
   unsafe = true
+  hardWraps = true  # each new line in a poem stays a new line

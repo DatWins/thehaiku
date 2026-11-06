@@ -5,7 +5,7 @@ draft: false
 tags:
   - haiku
 categories: ["autumn"]
-image: "/flora/flora-autumn3.webp"
+image: "/flora/2026-10-31.webp"
 ---
 Oh Fun, Trick or Treat
 Halloween night, rains falling
