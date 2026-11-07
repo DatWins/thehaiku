@@ -55,7 +55,7 @@ theme = "beautifulhugo"
   weight = 3
 
 [[menu.main]]
-  name = "Seasons"
+  name = "Themes"
   url = "/categories/"
   weight = 4
 
